@@ -1,6 +1,8 @@
-package bls_keystore_bn254_go
+package keystore
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -230,12 +232,12 @@ func (ks *Keystore) Encrypt(secret []byte, password string, path string, kdfSalt
 	}
 	ks.Crypto.Cipher.Message = hex.EncodeToString(encryptedSecret)
 
-	checksum := sha256Hash(append(decryptionKey[16:], encryptedSecret...))
+	checksum := Sha256Hash(append(decryptionKey[16:], encryptedSecret...))
 	ks.Crypto.Checksum.Function = "sha256"
 	ks.Crypto.Checksum.Message = hex.EncodeToString(checksum[:])
 	ks.Path = path
 
-	ks.PubKey, err = blsSkToPk(secret)
+	ks.PubKey, err = BlsSkToPk(secret)
 	if err != nil {
 		return nil, err
 	}
@@ -272,32 +274,32 @@ func (ks *Keystore) processPassword(password string) []byte {
 //   - error: An error object if key derivation fails or if the KDF function is unsupported.
 func (ks *Keystore) Kdf(password []byte, salt []byte) ([]byte, error) {
 
-	dkLen, err := getKeyFromMap(ks.Crypto.Kdf.Params, "dklen")
+	dkLen, err := GetKeyFromMap(ks.Crypto.Kdf.Params, "dklen")
 	if err != nil {
 		return nil, err
 	}
 
 	if ks.Crypto.Kdf.Function == "scrypt" {
-		r, err := getKeyFromMap(ks.Crypto.Kdf.Params, "r")
+		r, err := GetKeyFromMap(ks.Crypto.Kdf.Params, "r")
 		if err != nil {
 			return nil, err
 		}
-		p, err := getKeyFromMap(ks.Crypto.Kdf.Params, "p")
+		p, err := GetKeyFromMap(ks.Crypto.Kdf.Params, "p")
 		if err != nil {
 			return nil, err
 		}
-		n, err := getKeyFromMap(ks.Crypto.Kdf.Params, "n")
+		n, err := GetKeyFromMap(ks.Crypto.Kdf.Params, "n")
 		if err != nil {
 			return nil, err
 		}
 		return Scrypt(password, salt, int(n.(float64)), int(r.(float64)), int(p.(float64)), int(dkLen.(float64)))
 
 	} else if ks.Crypto.Kdf.Function == "pbkdf2" {
-		c, err := getKeyFromMap(ks.Crypto.Kdf.Params, "c")
+		c, err := GetKeyFromMap(ks.Crypto.Kdf.Params, "c")
 		if err != nil {
 			return nil, err
 		}
-		prf, err := getKeyFromMap(ks.Crypto.Kdf.Params, "prf")
+		prf, err := GetKeyFromMap(ks.Crypto.Kdf.Params, "prf")
 		if err != nil {
 			return nil, err
 		}
@@ -370,13 +372,13 @@ func (ks *Keystore) Decrypt(password string) ([]byte, error) {
 	}
 
 	checksumInput := append(decryptionKey[16:32], cMessage...) // The decryption key and cipher message
-	checksum := sha256Hash(checksumInput)
+	checksum := Sha256Hash(checksumInput)
 	expectedChecksum, err := ks.Crypto.ChecksumMessage()
 	if err != nil {
 		return nil, err
 	}
 
-	if !equal(checksum, expectedChecksum) {
+	if !Equal(checksum, expectedChecksum) {
 		return nil, errors.New("checksum message error")
 	}
 
@@ -387,4 +389,41 @@ func (ks *Keystore) Decrypt(password string) ([]byte, error) {
 	}
 
 	return decryptedMessage, nil
+}
+
+// Aes128CTRDecrypt decrypts a ciphertext using AES-128 in CTR (Counter) mode.
+//
+// It uses the provided key and initialization vector (IV) to decrypt the ciphertext and return the plaintext.
+// The IV is obtained by calling `ks.Crypto.IV()`. Note that the `params` parameter is currently not used in this function.
+//
+// Parameters:
+//   - key: A byte slice containing the decryption key.
+//   - Must be exactly 16 bytes long to match the AES-128 specification.
+//   - ciphertext: A byte slice containing the data to be decrypted.
+//   - params: A map containing cipher parameters.
+//   - **Currently unused** in this function.
+//   - Intended to hold cipher parameters like the IV.
+//
+// Returns:
+//   - A byte slice containing the decrypted plaintext.
+//   - An error if the decryption fails.
+func (ks *Keystore) Aes128CTRDecrypt(key, ciphertext []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	iv, err := ks.Crypto.IV() // Get the IV from the cipher params
+	if err != nil {
+		return nil, err
+	}
+	if len(iv) != aes.BlockSize {
+		return nil, fmt.Errorf("invalid IV size: %d", len(iv))
+	}
+
+	stream := cipher.NewCTR(block, iv)
+	plaintext := make([]byte, len(ciphertext))
+	stream.XORKeyStream(plaintext, ciphertext)
+
+	return plaintext, nil
 }

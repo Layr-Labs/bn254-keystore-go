@@ -1,4 +1,4 @@
-package bls_keystore_bn254_go
+package mnemonic
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	testVectorFilePath = filepath.Join(os.Getenv("PWD"), "tests_vectors", "tree_kdf_intermediate.json")
+	testVectorFilePath = filepath.Join(os.Getenv("PWD"), "..", "tests_vectors", "tree_kdf_intermediate.json")
 	testVector         struct {
 		Mnemonic            string   `json:"mnemonic"`
 		Password            string   `json:"password"`
@@ -62,7 +62,7 @@ func TestFlipBits256(t *testing.T) {
 	}
 
 	// Flip the bits of the integer
-	flippedBits := flipBits256(testVectorInt)
+	flippedBits := FlipBits256(testVectorInt)
 
 	// Compute testVectorInt & flippedBits
 	andResult := new(big.Int).And(testVectorInt, flippedBits)
@@ -115,7 +115,7 @@ func TestIKMToLamportSK(t *testing.T) {
 	lamport0, err := IkmToLamportSK(IKM, salt)
 	assert.NoError(t, err)
 	// Compute not_IKM by flipping bits of master_SK and converting to 32-byte big-endian bytes
-	notMasterSK := flipBits256(masterSK)
+	notMasterSK := FlipBits256(masterSK)
 	notIKM := notMasterSK.Bytes()
 	// Ensure notIKM is 32 bytes
 	if len(notIKM) < 32 {
@@ -164,7 +164,7 @@ func TestParentSKToLamportPK(t *testing.T) {
 	}
 
 	// Compute the Lamport PK using the parentSKToLamportPK function
-	computedLamportPK, err := parentSKToLamportPK(parentSK, index)
+	computedLamportPK, err := ParentSKToLamportPK(parentSK, index)
 	assert.NoError(t, err)
 
 	// Compare the expected and computed Lamport PKs
@@ -199,7 +199,7 @@ func TestHKDFModR(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, err := hKDFModR(test.IKM, []byte(""))
+		result, err := HKDFModR(test.IKM, []byte(""))
 		if err != nil {
 			t.Fatalf("Failed to derive secret key: %v", err)
 		}

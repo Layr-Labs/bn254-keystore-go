@@ -1,13 +1,13 @@
-package bls_keystore_bn254_go
+package keystore
 
-// ScryptKeystore embeds the Keystore and initializes specific cryptographic parameters
-type ScryptKeystore struct {
+// Pbkdf2Keystore embeds the Keystore and initializes specific cryptographic parameters
+type Pbkdf2Keystore struct {
 	Keystore
 }
 
-// NewScryptKeystore initializes a new ScryptKeystore with the Scrypt KDF and AES-128-CTR cipher
-func NewScryptKeystore() *ScryptKeystore {
-	return &ScryptKeystore{
+// NewPbkdf2Keystore initializes a new Pbkdf2Keystore with the PBKDF2 KDF and AES-128-CTR cipher
+func NewPbkdf2Keystore() *Pbkdf2Keystore {
+	return &Pbkdf2Keystore{
 		Keystore: Keystore{
 			Crypto: KeystoreCrypto{
 				Kdf: struct {
@@ -15,32 +15,31 @@ func NewScryptKeystore() *ScryptKeystore {
 					Params   map[string]interface{} `json:"params"`
 					Message  string                 `json:"message"`
 				}{
-					Function: "scrypt",
+					Function: "pbkdf2",
 					Params: map[string]interface{}{
+						"c":     float64(1 << 18), // 2^18 iterations
 						"dklen": float64(32),
-						"n":     float64(1 << 18), // 2^18 iterations
-						"r":     float64(8),
-						"p":     float64(1),
+						"prf":   "hmac-sha256",
 					},
-					Message: "",
+					Message: "", // This will be set when used
 				},
 				Checksum: struct {
 					Function string                 `json:"function"`
 					Params   map[string]interface{} `json:"params"`
 					Message  string                 `json:"message"`
 				}{
+					Message:  "", // This will be set when used
 					Function: "sha256",
 					Params:   map[string]interface{}{},
-					Message:  "",
 				},
 				Cipher: struct {
 					Function string                 `json:"function"`
 					Params   map[string]interface{} `json:"params"`
 					Message  string                 `json:"message"`
 				}{
-					Function: "aes-128-ctr",
+					Message:  "", // This will be set when encrypting/decrypting
 					Params:   map[string]interface{}{},
-					Message:  "",
+					Function: "aes-128-ctr",
 				},
 			},
 		},

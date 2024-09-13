@@ -1,6 +1,7 @@
-package bls_keystore_bn254_go
+package keystore
 
 import (
+	"encoding/hex"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -15,19 +16,19 @@ func TestScryptInvalidParams(t *testing.T) {
 		// Valid parameters
 		{N: 131072, r: 8, p: 1, valid: true},
 		// Unsafe parameters (might cause excessive resource consumption)
-		//{N: 65536, r: 8, p: 1, valid: false},
-		//// Invalid N (must be > 1 and a power of two)
-		//{N: 10000, r: 8, p: 1, valid: false},
-		//// Invalid r (must be > 0)
-		//{N: 16384, r: 0, p: 1, valid: false},
-		//// Invalid p (must be > 0)
-		//{N: 16384, r: 8, p: 0, valid: false},
-		//// N not a power of two
-		//{N: 5000, r: 8, p: 1, valid: false},
-		//// N <= 1
-		//{N: 1, r: 8, p: 1, valid: false},
-		//// Negative N
-		//{N: -16384, r: 8, p: 1, valid: false},
+		{N: 65536, r: 8, p: 1, valid: false},
+		// Invalid N (must be > 1 and a power of two)
+		{N: 10000, r: 8, p: 1, valid: false},
+		// Invalid r (must be > 0)
+		{N: 16384, r: 0, p: 1, valid: false},
+		// Invalid p (must be > 0)
+		{N: 16384, r: 8, p: 0, valid: false},
+		// N not a power of two
+		{N: 5000, r: 8, p: 1, valid: false},
+		// N <= 1
+		{N: 1, r: 8, p: 1, valid: false},
+		// Negative N
+		{N: -16384, r: 8, p: 1, valid: false},
 	}
 
 	for _, test := range tests {
@@ -104,6 +105,15 @@ func TestPBKDF2InvalidCount(t *testing.T) {
 			assert.Error(t, err)
 		}
 	}
+}
+
+// hexDecodeOrFail decodes a hex string or fails the test.
+func hexDecodeOrFail(t *testing.T, s string) []byte {
+	data, err := hex.DecodeString(s)
+	if err != nil {
+		t.Fatalf("Failed to decode hex string: %v", err)
+	}
+	return data
 }
 
 func TestAES128CTR(t *testing.T) {

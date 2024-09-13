@@ -1,4 +1,4 @@
-package bls_keystore_bn254_go
+package keystore
 
 import (
 	"crypto/aes"
@@ -108,41 +108,4 @@ func Aes128CTREncrypt(key, iv, plaintext []byte) ([]byte, error) {
 	ciphertext := make([]byte, len(plaintext))
 	stream.XORKeyStream(ciphertext, plaintext)
 	return ciphertext, nil
-}
-
-// Aes128CTRDecrypt decrypts a ciphertext using AES-128 in CTR (Counter) mode.
-//
-// It uses the provided key and initialization vector (IV) to decrypt the ciphertext and return the plaintext.
-// The IV is obtained by calling `ks.Crypto.IV()`. Note that the `params` parameter is currently not used in this function.
-//
-// Parameters:
-//   - key: A byte slice containing the decryption key.
-//   - Must be exactly 16 bytes long to match the AES-128 specification.
-//   - ciphertext: A byte slice containing the data to be decrypted.
-//   - params: A map containing cipher parameters.
-//   - **Currently unused** in this function.
-//   - Intended to hold cipher parameters like the IV.
-//
-// Returns:
-//   - A byte slice containing the decrypted plaintext.
-//   - An error if the decryption fails.
-func (ks *Keystore) Aes128CTRDecrypt(key, ciphertext []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	iv, err := ks.Crypto.IV() // Get the IV from the cipher params
-	if err != nil {
-		return nil, err
-	}
-	if len(iv) != aes.BlockSize {
-		return nil, fmt.Errorf("invalid IV size: %d", len(iv))
-	}
-
-	stream := cipher.NewCTR(block, iv)
-	plaintext := make([]byte, len(ciphertext))
-	stream.XORKeyStream(plaintext, ciphertext)
-
-	return plaintext, nil
 }
