@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/text/unicode/norm"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"unicode"
@@ -165,7 +164,8 @@ func KeystoreCryptoFromJSON(data map[string]interface{}) (*KeystoreCrypto, error
 
 // FromFile reads a keystore from a file
 func (ks *Keystore) FromFile(path string) error {
-	fileData, err := ioutil.ReadFile(path)
+	cleanedPath := filepath.Clean(path)
+	fileData, err := os.ReadFile(cleanedPath)
 	if err != nil {
 		return err
 	}
@@ -319,8 +319,11 @@ func (ks *Keystore) ToJSON() (string, error) {
 
 // Save writes the Keystore to a file in JSON format
 func (ks *Keystore) Save(fileFolder string) error {
-	filePath := filepath.Join(fileFolder, ks.UUID+".json")
-	file, err := os.Create(filePath)
+	cleanedFileFolder := filepath.Clean(fileFolder)
+	filePath := filepath.Join(cleanedFileFolder, ks.UUID+".json")
+
+	cleanedFilePath := filepath.Clean(fileFolder)
+	file, err := os.Create(cleanedFilePath)
 	if err != nil {
 		return err
 	}
