@@ -1,4 +1,4 @@
-package bls_keystore_bn254_go
+package mnemonic
 
 import (
 	"encoding/hex"
@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	wordListsPath              = filepath.Join(os.Getenv("PWD"), "word_lists")
-	testVectorMnemonicFilePath = filepath.Join(os.Getenv("PWD"), "tests_vectors", "mnemonic.json")
+	wordListsPath              = filepath.Join(os.Getenv("PWD"), "..", "word_lists")
+	testVectorMnemonicFilePath = filepath.Join(os.Getenv("PWD"), "..", "tests_vectors", "mnemonic.json")
 	testVectorsMnemonic        map[string][][4]string
 )
 

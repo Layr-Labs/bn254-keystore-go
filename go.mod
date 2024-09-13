@@ -1,4 +1,4 @@
-module bls-keystore-bn254-go
+module bn254-keystore-go
 
 go 1.23.1
 

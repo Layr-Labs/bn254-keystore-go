@@ -1,4 +1,4 @@
-package bls_keystore_bn254_go
+package mnemonic
 
 import (
 	"bytes"
@@ -15,14 +15,14 @@ import (
 
 var blsCurveOrder = fr.Modulus()
 
-// flipBits256 flips 256 bits of the given input.
+// FlipBits256 flips 256 bits of the given input.
 //
 // Parameters:
 //   - input (*big.Int): The input big integer whose bits are to be flipped.
 //
 // Returns:
 //   - *big.Int: The resulting big integer with flipped bits.
-func flipBits256(input *big.Int) *big.Int {
+func FlipBits256(input *big.Int) *big.Int {
 	maxVal := new(big.Int).Lsh(big.NewInt(1), 256) // 2^256
 	maxVal.Sub(maxVal, big.NewInt(1))              // 2^256 - 1
 	return new(big.Int).Xor(input, maxVal)
@@ -70,7 +70,7 @@ func hkdfExpand(salt, ikm []byte, length int) ([]byte, error) {
 	return output, nil
 }
 
-// parentSKToLamportPK derives the `index`th child's lamport PK from the `parent\_SK`.
+// ParentSKToLamportPK derives the `index`th child's lamport PK from the `parent\_SK`.
 //
 // Parameters:
 //   - parentSK (*big.Int): The parent secret key.
@@ -79,7 +79,7 @@ func hkdfExpand(salt, ikm []byte, length int) ([]byte, error) {
 // Returns:
 //   - []byte: The derived lamport public key.
 //   - error: An error object if the derivation process fails.
-func parentSKToLamportPK(parentSK *big.Int, index uint32) ([]byte, error) {
+func ParentSKToLamportPK(parentSK *big.Int, index uint32) ([]byte, error) {
 	salt := make([]byte, 4)
 	binary.BigEndian.PutUint32(salt, index)
 
@@ -88,7 +88,7 @@ func parentSKToLamportPK(parentSK *big.Int, index uint32) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	notIKM := flipBits256(parentSK).Bytes()
+	notIKM := FlipBits256(parentSK).Bytes()
 	lamport1, err := IkmToLamportSK(notIKM, salt)
 	if err != nil {
 		return nil, err
@@ -96,10 +96,10 @@ func parentSKToLamportPK(parentSK *big.Int, index uint32) ([]byte, error) {
 	lamportSKs := append(lamport0, lamport1...)
 	var lamportPKs [][]byte
 	for _, sk := range lamportSKs {
-		lamportPKs = append(lamportPKs, sha256Hash(sk))
+		lamportPKs = append(lamportPKs, Sha256Hash(sk))
 	}
 
-	compressedPK := sha256Hash(bytes.Join(lamportPKs, nil))
+	compressedPK := Sha256Hash(bytes.Join(lamportPKs, nil))
 	return compressedPK, nil
 }
 
@@ -113,7 +113,7 @@ func parentSKToLamportPK(parentSK *big.Int, index uint32) ([]byte, error) {
 // Returns:
 //   - *big.Int: The derived secret key.
 //   - error: An error object if the derivation process fails.
-func hKDFModR(IKM []byte, keyInfo []byte) (*big.Int, error) {
+func HKDFModR(IKM []byte, keyInfo []byte) (*big.Int, error) {
 	// L is the output length in bytes.
 	L := 48 // ceil((3 * ceil(log2(r))) / 16), where r is the order of the BLS12-381 curve
 
@@ -123,7 +123,7 @@ func hKDFModR(IKM []byte, keyInfo []byte) (*big.Int, error) {
 	zero := new(big.Int)
 
 	for SK.Cmp(zero) == 0 {
-		salt = sha256Hash(salt)
+		salt = Sha256Hash(salt)
 
 		// Append 0x00 to IKM
 		ikm := append(IKM, 0x00)
@@ -164,11 +164,11 @@ func deriveChildSK(parentSK *big.Int, index uint32) (*big.Int, error) {
 	if index < 0 || uint64(index) >= uint64(math.Pow(2, 32)) {
 		return nil, errors.New("`index` should be greater than or equal to 0 and less than 2^32")
 	}
-	lamportPK, err := parentSKToLamportPK(parentSK, index)
+	lamportPK, err := ParentSKToLamportPK(parentSK, index)
 	if err != nil {
 		return nil, err
 	}
-	return hKDFModR(lamportPK, []byte(""))
+	return HKDFModR(lamportPK, []byte(""))
 }
 
 // deriveMasterSK derives the master SK from a seed.
@@ -183,5 +183,17 @@ func deriveMasterSK(seed []byte) (*big.Int, error) {
 	if len(seed) < 32 {
 		return nil, errors.New("`len(seed)` should be greater than or equal to 32")
 	}
-	return hKDFModR(seed, []byte(""))
+	return HKDFModR(seed, []byte(""))
+}
+
+// Sha256Hash returns the SHA-256 hash of the input.
+//
+// Parameters:
+//   - input ([]byte): The input byte slice to be hashed.
+//
+// Returns:
+//   - []byte: The resulting SHA-256 hash.
+func Sha256Hash(input []byte) []byte {
+	hash := sha256.Sum256(input)
+	return hash[:]
 }

@@ -1,4 +1,4 @@
-package bls_keystore_bn254_go
+package mnemonic
 
 import (
 	"bufio"
