@@ -18,6 +18,14 @@ import (
 )
 
 // getWordList reads the BIP39 wordlist for the given language from a file.
+//
+// Parameters:
+//   - language (string): The language of the wordlist.
+//   - path (string): The path to the directory containing the wordlist file.
+//
+// Returns:
+//   - []string: A slice of words from the wordlist.
+//   - error: An error object if the wordlist file cannot be read.
 func getWordList(language, path string) ([]string, error) {
 	filePath := filepath.Join(path, fmt.Sprintf("%s.txt", language))
 	file, err := os.Open(filePath)
@@ -39,6 +47,14 @@ func getWordList(language, path string) ([]string, error) {
 }
 
 // indexToWord returns the corresponding word for the given index in the word list.
+//
+// Parameters:
+//   - wordList ([]string): The word list.
+//   - index (int): The index of the word in the word list.
+//
+// Returns:
+//   - string: The word corresponding to the given index.
+//   - error: An error object if the index is out of range.
 func indexToWord(wordList []string, index int) (string, error) {
 	if index >= 2048 {
 		return "", fmt.Errorf("index should be less than 2048. Got %d", index)
@@ -47,6 +63,14 @@ func indexToWord(wordList []string, index int) (string, error) {
 }
 
 // wordToIndex returns the index of the given word in the word list.
+//
+// Parameters:
+//   - wordList ([]string): The word list.
+//   - word (string): The word to find in the word list.
+//
+// Returns:
+//   - int: The index of the word in the word list.
+//   - error: An error object if the word is not found in the word list.
 func wordToIndex(wordList []string, word string) (int, error) {
 	for i, w := range wordList {
 		if w == word {
@@ -57,6 +81,12 @@ func wordToIndex(wordList []string, word string) (int, error) {
 }
 
 // uint11ArrayToUint converts a uint11 array to a single integer.
+//
+// Parameters:
+//   - uint11Array ([]int): The array of 11-bit integers.
+//
+// Returns:
+//   - *big.Int: The resulting big integer.
 func uint11ArrayToUint(uint11Array []int) *big.Int {
 	result := new(big.Int) // Initialize a new big.Int to hold the result
 	for i, x := range uint11Array {
@@ -69,6 +99,14 @@ func uint11ArrayToUint(uint11Array []int) *big.Int {
 }
 
 // GetSeed generates the seed for the mnemonic using PBKDF2 as per BIP39.
+//
+// Parameters:
+//   - mnemonic (string): The mnemonic phrase.
+//   - password (string): The password used in conjunction with the mnemonic.
+//
+// Returns:
+//   - []byte: The generated seed.
+//   - error: An error object if the seed generation fails.
 func GetSeed(mnemonic, password string) ([]byte, error) {
 	encodedMnemonic := norm.NFKD.String(mnemonic)
 	salt := norm.NFKD.String("mnemonic" + password)
@@ -76,8 +114,15 @@ func GetSeed(mnemonic, password string) ([]byte, error) {
 }
 
 // determineMnemonicLanguage determines the language of the mnemonic based on the BIP39 word_lists.
+//
+// Parameters:
+//   - mnemonic (string): The mnemonic phrase.
+//   - wordsPath (string): The path to the directory containing the wordlist files.
+//
+// Returns:
+//   - []string: A slice of detected languages.
+//   - error: An error object if the language determination fails.
 func determineMnemonicLanguage(mnemonic, wordsPath string) ([]string, error) {
-	//languages := []string{"english", "italian", "korean", "portuguese", "spanish"}
 	languages := []string{"english", "italian", "portuguese", "czech", "spanish", "chinese_simplified", "chinese_traditional", "korean"}
 	wordLanguageMap := make(map[string]string)
 
@@ -124,16 +169,13 @@ func determineMnemonicLanguage(mnemonic, wordsPath string) ([]string, error) {
 	return slices.Compact(detectedLanguages), nil
 }
 
-// validateEntropyLength ensures that the entropy length is valid as per BIP39 standards.
-func validateEntropyLength(entropy []byte) error {
-	entropyLength := len(entropy) * 8
-	if entropyLength != 128 && entropyLength != 160 && entropyLength != 192 && entropyLength != 224 && entropyLength != 256 {
-		return fmt.Errorf("entropy length should be one of [128, 160, 192, 224, 256]. Got %d", entropyLength)
-	}
-	return nil
-}
-
 // getChecksum returns the checksum for the given entropy.
+//
+// Parameters:
+//   - entropy ([]byte): The entropy bytes.
+//
+// Returns:
+//   - *big.Int: The checksum as a big integer.
 func getChecksum(entropy []byte) *big.Int {
 	hash := sha256.Sum256(entropy)
 	checksumLength := len(entropy) * 8 / 32 // Calculate the number of bits for the checksum
@@ -145,7 +187,13 @@ func getChecksum(entropy []byte) *big.Int {
 	return checksum
 }
 
-// AbbreviateWords returns a list of words abbreviated to the first 4 runes after NFKC normalization
+// AbbreviateWords returns a list of words abbreviated to the first 4 runes after NFKC normalization.
+//
+// Parameters:
+//   - words ([]string): The list of words to abbreviate.
+//
+// Returns:
+//   - []string: The list of abbreviated words.
 func AbbreviateWords(words []string) []string {
 	abbreviated := make([]string, len(words))
 	for i, word := range words {
@@ -165,7 +213,14 @@ func AbbreviateWords(words []string) []string {
 	return abbreviated
 }
 
-// Reconstructs a mnemonic from word indices and a full word list
+// Reconstructs a mnemonic from word indices and a full word list.
+//
+// Parameters:
+//   - wordList ([]string): The full word list.
+//   - wordIndices ([]int): The list of word indices.
+//
+// Returns:
+//   - string: The reconstructed mnemonic.
 func reconstructFromWordIndices(wordList []string, wordIndices []int) string {
 	words := make([]string, len(wordIndices))
 	for i, index := range wordIndices {
@@ -175,6 +230,14 @@ func reconstructFromWordIndices(wordList []string, wordIndices []int) string {
 }
 
 // ReconstructMnemonic attempts to reconstruct a full mnemonic from an abbreviated version and verify its checksum.
+//
+// Parameters:
+//   - mnemonic (string): The abbreviated mnemonic phrase.
+//   - wordsPath (string): The path to the directory containing the wordlist files.
+//
+// Returns:
+//   - string: The reconstructed mnemonic.
+//   - error: An error object if the reconstruction fails.
 func ReconstructMnemonic(mnemonic, wordsPath string) (string, error) {
 	// Determine the language of the mnemonic
 	languages, err := determineMnemonicLanguage(mnemonic, wordsPath)
@@ -252,7 +315,16 @@ func ReconstructMnemonic(mnemonic, wordsPath string) (string, error) {
 	return reconstructedMnemonic, nil
 }
 
-// GetMnemonic generates a BIP-39 mnemonic from entropy and language
+// GetMnemonic generates a BIP-39 mnemonic from entropy and language.
+//
+// Parameters:
+//   - language (string): The language of the wordlist.
+//   - wordsPath (string): The path to the directory containing the wordlist files.
+//   - entropy ([]byte): The entropy bytes. If nil, random entropy will be generated.
+//
+// Returns:
+//   - string: The generated mnemonic phrase.
+//   - error: An error object if the mnemonic generation fails.
 func GetMnemonic(language, wordsPath string, entropy []byte) (string, error) {
 	// Generate random entropy if not provided
 	if entropy == nil {

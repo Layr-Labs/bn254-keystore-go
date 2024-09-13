@@ -15,7 +15,13 @@ import (
 
 var blsCurveOrder = fr.Modulus()
 
-// flipBits256 flips 256 bits of the given input
+// flipBits256 flips 256 bits of the given input.
+//
+// Parameters:
+//   - input (*big.Int): The input big integer whose bits are to be flipped.
+//
+// Returns:
+//   - *big.Int: The resulting big integer with flipped bits.
 func flipBits256(input *big.Int) *big.Int {
 	maxVal := new(big.Int).Lsh(big.NewInt(1), 256) // 2^256
 	maxVal.Sub(maxVal, big.NewInt(1))              // 2^256 - 1
@@ -23,6 +29,14 @@ func flipBits256(input *big.Int) *big.Int {
 }
 
 // IkmToLamportSK derives the lamport SK for a given IKM and salt using HKDF.
+//
+// Parameters:
+//   - IKM ([]byte): The input key material.
+//   - salt ([]byte): The salt used in the HKDF process.
+//
+// Returns:
+//   - [][]byte: A slice of byte slices representing the lamport SK.
+//   - error: An error object if the derivation process fails.
 func IkmToLamportSK(IKM, salt []byte) ([][]byte, error) {
 	OKM, err := hkdfExpand(salt, IKM, 8160)
 	if err != nil {
@@ -35,7 +49,16 @@ func IkmToLamportSK(IKM, salt []byte) ([][]byte, error) {
 	return lamportSK, nil
 }
 
-// hkdfExpand simulates HKDF-Expand for key derivation using standard Go HKDF and SHA256
+// hkdfExpand simulates HKDF-Expand for key derivation using standard Go HKDF and SHA256.
+//
+// Parameters:
+//   - salt ([]byte): The salt used in the HKDF process.
+//   - ikm ([]byte): The input key material.
+//   - length (int): The desired length of the output key material.
+//
+// Returns:
+//   - []byte: The expanded key material.
+//   - error: An error object if the expansion process fails.
 func hkdfExpand(salt, ikm []byte, length int) ([]byte, error) {
 	hashFunc := sha256.New
 	hkdfReader := hkdf.New(hashFunc, ikm, salt, nil)
@@ -47,7 +70,15 @@ func hkdfExpand(salt, ikm []byte, length int) ([]byte, error) {
 	return output, nil
 }
 
-// parentSKToLamportPK derives the `index`th child's lamport PK from the `parent_SK`.
+// parentSKToLamportPK derives the `index`th child's lamport PK from the `parent\_SK`.
+//
+// Parameters:
+//   - parentSK (*big.Int): The parent secret key.
+//   - index (uint32): The index of the child.
+//
+// Returns:
+//   - []byte: The derived lamport public key.
+//   - error: An error object if the derivation process fails.
 func parentSKToLamportPK(parentSK *big.Int, index uint32) ([]byte, error) {
 	salt := make([]byte, 4)
 	binary.BigEndian.PutUint32(salt, index)
@@ -72,14 +103,16 @@ func parentSKToLamportPK(parentSK *big.Int, index uint32) ([]byte, error) {
 	return compressedPK, nil
 }
 
-// sha256Hash returns the SHA-256 hash of the input
-func sha256Hash(input []byte) []byte {
-	hash := sha256.Sum256(input)
-	return hash[:]
-}
-
-// HKDFModR implements the HKDF_mod_r function as specified in EIP-2333.
+// HKDFModR implements the HKDF\_mod\_r function as specified in EIP-2333.
 // It derives a secret key modulo the BLS curve order from the input key material (IKM).
+//
+// Parameters:
+//   - IKM ([]byte): The input key material.
+//   - keyInfo ([]byte): Additional key information.
+//
+// Returns:
+//   - *big.Int: The derived secret key.
+//   - error: An error object if the derivation process fails.
 func hKDFModR(IKM []byte, keyInfo []byte) (*big.Int, error) {
 	// L is the output length in bytes.
 	L := 48 // ceil((3 * ceil(log2(r))) / 16), where r is the order of the BLS12-381 curve
@@ -119,6 +152,14 @@ func hKDFModR(IKM []byte, keyInfo []byte) (*big.Int, error) {
 }
 
 // deriveChildSK derives the child SK at the supplied `index` from the parent SK.
+//
+// Parameters:
+//   - parentSK (*big.Int): The parent secret key.
+//   - index (uint32): The index of the child.
+//
+// Returns:
+//   - *big.Int: The derived child secret key.
+//   - error: An error object if the derivation process fails.
 func deriveChildSK(parentSK *big.Int, index uint32) (*big.Int, error) {
 	if index < 0 || uint64(index) >= uint64(math.Pow(2, 32)) {
 		return nil, errors.New("`index` should be greater than or equal to 0 and less than 2^32")
@@ -131,6 +172,13 @@ func deriveChildSK(parentSK *big.Int, index uint32) (*big.Int, error) {
 }
 
 // deriveMasterSK derives the master SK from a seed.
+//
+// Parameters:
+//   - seed ([]byte): The seed bytes.
+//
+// Returns:
+//   - *big.Int: The derived master secret key.
+//   - error: An error object if the derivation process fails.
 func deriveMasterSK(seed []byte) (*big.Int, error) {
 	if len(seed) < 32 {
 		return nil, errors.New("`len(seed)` should be greater than or equal to 32")
