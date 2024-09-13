@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/scrypt"
 	"hash"
-	"math"
+	"math/big"
 	"strings"
 )
 
@@ -36,8 +36,10 @@ func Scrypt(password []byte, salt []byte, n, r, p, dklen int) ([]byte, error) {
 	if n*r*p < 1<<20 { // 128 MB memory usage
 		return nil, errors.New("the Scrypt parameters chosen are not secure")
 	}
-	maxTerm := int(math.Pow(2, 128*float64(r)/8))
-	if n >= maxTerm {
+
+	maxTerm := new(big.Int).Lsh(big.NewInt(1), uint(128*float64(r)/8))
+	bigN := new(big.Int).SetUint64(uint64(n))
+	if bigN.Cmp(maxTerm) >= 0 {
 		return nil, errors.New(fmt.Sprintf("the given `n`=%d should be less than `%d`", n, maxTerm))
 	}
 	// Perform Scrypt key derivation
