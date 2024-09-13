@@ -27,8 +27,11 @@ import (
 //   - []string: A slice of words from the wordlist.
 //   - error: An error object if the wordlist file cannot be read.
 func getWordList(language, path string) ([]string, error) {
-	filePath := filepath.Join(path, fmt.Sprintf("%s.txt", language))
-	file, err := os.Open(filePath)
+	cleanLanguageFileName := filepath.Clean(fmt.Sprintf("%s.txt", language))
+	filePath := filepath.Join(path, cleanLanguageFileName)
+
+	cleanFilePath := filepath.Clean(filePath)
+	file, err := os.Open(cleanFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open wordlist file: %v", err)
 	}
