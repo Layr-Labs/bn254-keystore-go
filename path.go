@@ -51,7 +51,7 @@ func pathToNodes(path string) ([]int, error) {
 	return result, nil
 }
 
-// mnemonicAndPathToKey derives the secret key (SK) at position `path`, derived from `mnemonic`.
+// MnemonicAndPathToKey derives the secret key (SK) at position `path`, derived from `mnemonic`.
 // The password is used to be compliant with BIP39 mnemonics that use passwords.
 //
 // Parameters:
@@ -62,7 +62,7 @@ func pathToNodes(path string) ([]int, error) {
 // Returns:
 //   - *big.Int: The derived secret key.
 //   - error: An error object if any step in the derivation process fails.
-func mnemonicAndPathToKey(mnemonic, password, path string) (*big.Int, error) {
+func MnemonicAndPathToKey(mnemonic, password, path string) (*big.Int, error) {
 	// Get the seed from the mnemonic and password (assuming getSeed is implemented)
 	seed, err := GetSeed(mnemonic, password)
 	if err != nil {

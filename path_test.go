@@ -219,7 +219,7 @@ func TestMnemonicAndPathToKey(t *testing.T) {
 	expectedKey := testVector.ChildSK
 
 	// Call MnemonicAndPathToKey
-	derivedKey, err := mnemonicAndPathToKey(mnemonic, password, path)
+	derivedKey, err := MnemonicAndPathToKey(mnemonic, password, path)
 	if err != nil {
 		t.Fatalf("MnemonicAndPathToKey returned an error: %v", err)
 	}
