@@ -239,7 +239,7 @@ func TestProcessPassword(t *testing.T) {
 		t.Run(tt.password, func(t *testing.T) {
 			// Call the _process_password function
 			var ks Keystore
-			result := ks._processPassword(tt.password)
+			result := ks.processPassword(tt.password)
 
 			// Check if the processed password matches the expected result
 			if string(result) != string(tt.processedPassword) {

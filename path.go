@@ -8,6 +8,13 @@ import (
 )
 
 // pathToNodes maps from a path string to a slice of indices, where each index represents the corresponding level in the path.
+//
+// Parameters:
+//   - path (string): The path string to be converted to a slice of indices.
+//
+// Returns:
+//   - []int: A slice of indices representing the levels in the path.
+//   - error: An error object if the path is invalid or contains invalid characters.
 func pathToNodes(path string) ([]int, error) {
 	// Remove any spaces from the path
 	path = strings.ReplaceAll(path, " ", "")
@@ -46,6 +53,15 @@ func pathToNodes(path string) ([]int, error) {
 
 // mnemonicAndPathToKey derives the secret key (SK) at position `path`, derived from `mnemonic`.
 // The password is used to be compliant with BIP39 mnemonics that use passwords.
+//
+// Parameters:
+//   - mnemonic (string): The mnemonic phrase used to derive the seed.
+//   - password (string): The password used in conjunction with the mnemonic.
+//   - path (string): The derivation path.
+//
+// Returns:
+//   - *big.Int: The derived secret key.
+//   - error: An error object if any step in the derivation process fails.
 func mnemonicAndPathToKey(mnemonic, password, path string) (*big.Int, error) {
 	// Get the seed from the mnemonic and password (assuming getSeed is implemented)
 	seed, err := GetSeed(mnemonic, password)

@@ -7,6 +7,14 @@ import (
 	"math/big"
 )
 
+// blsSkToPk converts a BLS secret key to a public key.
+//
+// Parameters:
+//   - secret ([]byte): The BLS secret key as a byte slice.
+//
+// Returns:
+//   - string: The BLS public key as a hex-encoded string.
+//   - error: An error object if the conversion fails.
 func blsSkToPk(secret []byte) (string, error) {
 	// Initialize the Fr element from the secret
 	var frElement fr.Element

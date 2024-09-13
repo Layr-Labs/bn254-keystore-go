@@ -1,9 +1,6 @@
 package bls_keystore_bn254_go
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -182,6 +179,19 @@ func (ks *Keystore) FromFile(path string) error {
 	return ks.FromJSON(jsonData)
 }
 
+// Encrypt encrypts the provided secret using the specified password and stores it in the Keystore.
+// It utilizes AES-128-CTR encryption and a key derivation function (KDF) to securely encrypt the secret.
+//
+// Parameters:
+//   - secret ([]byte): The secret data to be encrypted (e.g., a private key). Must not be empty.
+//   - password (string): The password used to derive the encryption key via the KDF. Must not be empty.
+//   - path (string): The file system path where the keystore will be stored.
+//   - kdfSalt ([]byte): Optional. The salt used in the key derivation function. If nil or empty, a random 256-bit salt is generated.
+//   - aesIV ([]byte): Optional. The initialization vector (IV) for AES encryption. If nil or empty, a random 128-bit IV is generated.
+//
+// Returns:
+//   - *Keystore: A pointer to the Keystore instance containing the encrypted secret and associated metadata.
+//   - error: An error object if any issues occur during encryption or parameter validation.
 func (ks *Keystore) Encrypt(secret []byte, password string, path string, kdfSalt, aesIV []byte) (*Keystore, error) {
 	// Ensure secret and password are not empty
 	if len(secret) == 0 || password == "" {
@@ -207,14 +217,14 @@ func (ks *Keystore) Encrypt(secret []byte, password string, path string, kdfSalt
 	var err error
 
 	// Switch based on KDF function
-	decryptionKey, err = ks.Kdf(ks._processPassword(password), kdfSalt)
+	decryptionKey, err = ks.Kdf(ks.processPassword(password), kdfSalt)
 
 	if err != nil {
 		return nil, err
 	}
 
 	// Encrypt the secret using AES-128-CTR
-	encryptedSecret, err := AES128CTR(decryptionKey[:16], aesIV, secret)
+	encryptedSecret, err := Aes128CTREncrypt(decryptionKey[:16], aesIV, secret)
 	if err != nil {
 		return nil, fmt.Errorf("encryption failed: %v", err)
 	}
@@ -233,8 +243,8 @@ func (ks *Keystore) Encrypt(secret []byte, password string, path string, kdfSalt
 	return ks, nil
 }
 
-// _processPassword processes the password as per the NFKD UTF-8 requirement of EIP-2335
-func (ks *Keystore) _processPassword(password string) []byte {
+// processPassword processes the password as per the NFKD UTF-8 requirement of EIP-2335
+func (ks *Keystore) processPassword(password string) []byte {
 	// Normalize the password to NFKD
 	normPassword := norm.NFKD.String(password)
 
@@ -250,7 +260,16 @@ func (ks *Keystore) _processPassword(password string) []byte {
 	return []byte(filteredPassword)
 }
 
-// Kdf performs the key derivation function based on the provided crypto function
+// Kdf derives a cryptographic key from the provided password and salt using the key derivation function (KDF)
+// specified in the Keystore's crypto parameters. It supports both "scrypt" and "pbkdf2" algorithms.
+//
+// Parameters:
+//   - password ([]byte): The password from which the key will be derived.
+//   - salt ([]byte): The cryptographic salt used in the key derivation process.
+//
+// Returns:
+//   - []byte: The derived key as a byte slice.
+//   - error: An error object if key derivation fails or if the KDF function is unsupported.
 func (ks *Keystore) Kdf(password []byte, salt []byte) ([]byte, error) {
 
 	dkLen, err := getKeyFromMap(ks.Crypto.Kdf.Params, "dklen")
@@ -319,7 +338,15 @@ func (ks *Keystore) Save(fileFolder string) error {
 	return nil
 }
 
-// Decrypt retrieves the secret (BLS SK) by decrypting with the password
+// Decrypt decrypts the encrypted secret stored in the Keystore using the provided password.
+// It utilizes the key derivation function (KDF) and AES-128-CTR decryption to recover the original secret.
+//
+// Parameters:
+//   - password (string): The password used to derive the decryption key. Must match the password used during encryption.
+//
+// Returns:
+//   - []byte: The decrypted secret (e.g., a private key).
+//   - error: An error object if decryption fails due to incorrect password, checksum mismatch, or other issues.
 func (ks *Keystore) Decrypt(password string) ([]byte, error) {
 	// Derive the decryption key using the KDF
 
@@ -328,7 +355,7 @@ func (ks *Keystore) Decrypt(password string) ([]byte, error) {
 		return nil, err
 	}
 
-	decryptionKey, err := ks.Kdf(ks._processPassword(password), kdfSalt)
+	decryptionKey, err := ks.Kdf(ks.processPassword(password), kdfSalt)
 	if err != nil {
 		return nil, err
 	}
@@ -340,7 +367,7 @@ func (ks *Keystore) Decrypt(password string) ([]byte, error) {
 	}
 
 	checksumInput := append(decryptionKey[16:32], cMessage...) // The decryption key and cipher message
-	checksum := ks.cryptoChecksum(checksumInput)
+	checksum := sha256Hash(checksumInput)
 	expectedChecksum, err := ks.Crypto.ChecksumMessage()
 	if err != nil {
 		return nil, err
@@ -351,52 +378,10 @@ func (ks *Keystore) Decrypt(password string) ([]byte, error) {
 	}
 
 	// Decrypt the cipher message
-	decryptedMessage, err := ks.aes128CTRDecrypt(decryptionKey[:16], cMessage, ks.Crypto.CipherParams())
+	decryptedMessage, err := ks.Aes128CTRDecrypt(decryptionKey[:16], cMessage)
 	if err != nil {
 		return nil, err
 	}
 
 	return decryptedMessage, nil
-}
-
-// cryptoChecksum calculates the SHA-256 hash for checksum verification
-func (ks *Keystore) cryptoChecksum(data []byte) []byte {
-	h := sha256.New()
-	h.Write(data)
-	return h.Sum(nil)
-}
-
-// aes128CTRDecrypt decrypts a message using AES-128-CTR
-func (ks *Keystore) aes128CTRDecrypt(key, ciphertext []byte, params map[string]interface{}) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	iv, err := ks.Crypto.IV() // Get the IV from the cipher params
-	if err != nil {
-		return nil, err
-	}
-	if len(iv) != aes.BlockSize {
-		return nil, fmt.Errorf("invalid IV size: %d", len(iv))
-	}
-
-	stream := cipher.NewCTR(block, iv)
-	plaintext := make([]byte, len(ciphertext))
-	stream.XORKeyStream(plaintext, ciphertext)
-
-	return plaintext, nil
-}
-
-// Utility function to check if two byte slices are equal
-func equal(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
