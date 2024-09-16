@@ -1,13 +1,11 @@
 package keystore
 
 import (
+	curve2 "bn254-keystore-go/curve"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
-	"github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
-	"math/big"
 )
 
 // generateRandomBytes generates a slice of cryptographically secure random bytes of the specified length.
@@ -83,23 +81,10 @@ func Equal(a, b []byte) bool {
 // Returns:
 //   - string: The BLS public key as a hex-encoded string.
 //   - error: An error object if the conversion fails.
-func BlsSkToPk(secret []byte) (string, error) {
-	// Initialize the Fr element from the secret
-	var frElement fr.Element
-	frElement.SetBytes(secret)
-
-	// Get the G1 generator
-	_, _, _, g2Gen := bls12381.Generators()
-
-	// Compute the public key on G1 as pubKey = G1Gen * frElement
-	var pubKey bls12381.G2Affine
-	var frBigInt big.Int
-	frElement.BigInt(&frBigInt)
-	pubKey.ScalarMultiplication(&g2Gen, &frBigInt)
-
-	// Get the byte representation of the public key
-	publicKeyBytes := pubKey.Bytes()
-
-	// Return the public key as a hex-encoded string
-	return hex.EncodeToString(publicKeyBytes[:]), nil
+func BlsSkToPk(secret []byte, curve string) (string, error) {
+	ops, exists := curve2.OpsMap[curve]
+	if !exists {
+		return "", fmt.Errorf("curve '%s' not supported", curve)
+	}
+	return ops.GenerateG2PubKey(secret), nil
 }
