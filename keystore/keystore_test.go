@@ -113,6 +113,7 @@ func TestEncryptDecryptTestVectors(t *testing.T) {
 			baseKeystore = &NewScryptKeystore().Keystore
 		}
 
+		baseKeystore.Curve = keystore.Curve
 		generatedKeystore, err = baseKeystore.Encrypt(testVectorSecret, testVectorPassword, path, kdfSalt, aesIv)
 		if err != nil {
 			t.Fatalf("Encryption failed: %v", err)
@@ -176,6 +177,7 @@ func TestGeneratedKeystores(t *testing.T) {
 
 func TestEncryptDecryptPbkdf2RandomIv(t *testing.T) {
 	newKeystore := NewPbkdf2Keystore()
+	newKeystore.Curve = "bls12-381"
 	_, err := newKeystore.Encrypt(testVectorSecret, testVectorPassword, "random_iv", nil, nil)
 	if err != nil {
 		t.Fatalf("failed to encrypt: %v", err)
@@ -191,6 +193,8 @@ func TestEncryptDecryptPbkdf2RandomIv(t *testing.T) {
 
 func TestEncryptDecryptScryptRandomIv(t *testing.T) {
 	newKeystore := NewScryptKeystore()
+	newKeystore.Curve = "bls12-381"
+
 	_, err := newKeystore.Encrypt(testVectorSecret, testVectorPassword, "random_iv", nil, nil)
 	if err != nil {
 		t.Fatalf("failed to encrypt: %v", err)
@@ -206,6 +210,8 @@ func TestEncryptDecryptScryptRandomIv(t *testing.T) {
 
 func TestEncryptDecryptIncorrectPassword(t *testing.T) {
 	newKeystore := NewScryptKeystore()
+	newKeystore.Curve = "bls12-381"
+
 	_, err := newKeystore.Encrypt(testVectorSecret, testVectorPassword, "random_iv", nil, nil)
 	if err != nil {
 		t.Fatalf("failed to encrypt: %v", err)

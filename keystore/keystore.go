@@ -21,6 +21,7 @@ type Keystore struct {
 	Path        string         `json:"path"`
 	UUID        string         `json:"uuid"`
 	Version     int            `json:"version"`
+	Curve       string         `json:"curve"`
 }
 
 // KeystoreCrypto represents cryptographic parameters within the keystore
@@ -90,6 +91,7 @@ func (ks *Keystore) FromJSON(data map[string]interface{}) error {
 	ks.Version = int(version)
 	ks.Description, _ = data["description"].(string)
 	ks.PubKey, _ = data["pubkey"].(string)
+	ks.Curve, _ = data["curve"].(string)
 
 	return nil
 }
@@ -237,7 +239,7 @@ func (ks *Keystore) Encrypt(secret []byte, password string, path string, kdfSalt
 	ks.Crypto.Checksum.Message = hex.EncodeToString(checksum[:])
 	ks.Path = path
 
-	ks.PubKey, err = BlsSkToPk(secret)
+	ks.PubKey, err = BlsSkToPk(secret, ks.Curve)
 	if err != nil {
 		return nil, err
 	}
