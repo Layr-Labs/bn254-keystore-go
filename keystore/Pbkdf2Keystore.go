@@ -9,7 +9,7 @@ type Pbkdf2Keystore struct {
 func NewPbkdf2Keystore() *Pbkdf2Keystore {
 	return &Pbkdf2Keystore{
 		Keystore: Keystore{
-			Crypto: KeystoreCrypto{
+			Crypto: Crypto{
 				Kdf: struct {
 					Function string                 `json:"function"`
 					Params   map[string]interface{} `json:"params"`

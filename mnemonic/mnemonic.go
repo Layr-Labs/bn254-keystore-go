@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"crypto/sha512"
+
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/text/unicode/norm"
 )
@@ -126,7 +127,16 @@ func GetSeed(mnemonic, password string) ([]byte, error) {
 //   - []string: A slice of detected languages.
 //   - error: An error object if the language determination fails.
 func determineMnemonicLanguage(mnemonic, wordsPath string) ([]string, error) {
-	languages := []string{"english", "italian", "portuguese", "czech", "spanish", "chinese_simplified", "chinese_traditional", "korean"}
+	languages := []string{
+		"english",
+		"italian",
+		"portuguese",
+		"czech",
+		"spanish",
+		"chinese_simplified",
+		"chinese_traditional",
+		"korean",
+	}
 	wordLanguageMap := make(map[string]string)
 
 	for _, lang := range languages {

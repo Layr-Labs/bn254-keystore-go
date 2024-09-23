@@ -9,7 +9,7 @@ type ScryptKeystore struct {
 func NewScryptKeystore() *ScryptKeystore {
 	return &ScryptKeystore{
 		Keystore: Keystore{
-			Crypto: KeystoreCrypto{
+			Crypto: Crypto{
 				Kdf: struct {
 					Function string                 `json:"function"`
 					Params   map[string]interface{} `json:"params"`
