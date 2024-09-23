@@ -1,6 +1,7 @@
 package keystore
 
 import (
+	"bn254-keystore-go/mnemonic"
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/hex"
@@ -12,6 +13,12 @@ import (
 	"unicode"
 
 	"golang.org/x/text/unicode/norm"
+)
+
+const (
+	DefaultWordListPath = "../word_lists"
+
+	DerivationPathBN254 = "m/254/60/0/0"
 )
 
 // Keystore struct
@@ -190,7 +197,7 @@ func (ks *Keystore) FromFile(path string) error {
 // Parameters:
 //   - secret ([]byte): The secret data to be encrypted (e.g., a private key). Must not be empty.
 //   - password (string): The password used to derive the encryption key via the KDF. Must not be empty.
-//   - path (string): The file system path where the keystore will be stored.
+//   - path (string): The derivation path of the key.
 //
 // - kdfSalt ([]byte): Optional. The salt used in the key derivation function. If nil or empty, a random 256-bit salt is
 // generated. - aesIV ([]byte): Optional. The initialization vector (IV) for AES encryption. If nil or empty, a random
@@ -432,4 +439,82 @@ func (ks *Keystore) Aes128CTRDecrypt(key, ciphertext []byte) ([]byte, error) {
 	stream.XORKeyStream(plaintext, ciphertext)
 
 	return plaintext, nil
+}
+
+type KeyPair struct {
+	PrivateKey []byte
+	Mnemonic   string
+}
+
+func NewKeyPair(path string, password string, language mnemonic.Language) (*KeyPair, error) {
+	// Get the mnemonic
+	pkMnemonic, err := mnemonic.GetMnemonic(language, DefaultWordListPath, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Derive KeyPair
+	key, err := mnemonic.MnemonicAndPathToKey(pkMnemonic, password, DerivationPathBN254)
+	if err != nil {
+		return nil, err
+	}
+
+	// Encrypt the key
+	ks := &Keystore{}
+	ks, err = ks.Encrypt(key.Bytes(), password, DerivationPathBN254, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Save the keystore
+	err = ks.Save(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return key pair
+	return &KeyPair{
+		PrivateKey: key.Bytes(),
+		Mnemonic:   pkMnemonic,
+	}, nil
+}
+
+func ImportFromPrivateKey(pk []byte, path string, password string) error {
+	// Encrypt the key
+	ks := &Keystore{}
+	ks, err := ks.Encrypt(pk, password, DerivationPathBN254, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	// Save the keystore
+	err = ks.Save(path)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ImportFromMnemonic(pkMnemonic string, path string, password string) error {
+	// Derive KeyPair
+	key, err := mnemonic.MnemonicAndPathToKey(pkMnemonic, password, DerivationPathBN254)
+	if err != nil {
+		return err
+	}
+
+	// Encrypt the key
+	ks := &Keystore{}
+	ks, err = ks.Encrypt(key.Bytes(), password, DerivationPathBN254, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	// Save the keystore
+	err = ks.Save(path)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

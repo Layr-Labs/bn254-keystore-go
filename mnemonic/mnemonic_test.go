@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,12 +15,12 @@ import (
 var (
 	wordListsPath              = filepath.Join(os.Getenv("PWD"), "..", "word_lists")
 	testVectorMnemonicFilePath = filepath.Join(os.Getenv("PWD"), "..", "tests_vectors", "mnemonic.json")
-	testVectorsMnemonic        map[string][][4]string
+	testVectorsMnemonic        map[Language][][4]string
 )
 
 func init() {
 	// Load test vectors from the JSON file
-	data, err := ioutil.ReadFile(testVectorMnemonicFilePath)
+	data, err := os.ReadFile(testVectorMnemonicFilePath)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to load test vectors: %v", err))
 	}
@@ -114,7 +113,7 @@ func TestReconstructAbbreviatedMnemonic(t *testing.T) {
 
 // TestGetWord tests the indexToWord function with various indices.
 func TestGetWord(t *testing.T) {
-	language := "english"
+	language := English
 
 	// Get the word list for the specified language
 	wordList, err := getWordList(language, wordListsPath)
