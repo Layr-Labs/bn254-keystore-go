@@ -12,3 +12,11 @@ fmt:
 format-lines: ## formats all go files with golines
 	go install github.com/segmentio/golines@latest
 	golines -w -m 120 --ignore-generated --shorten-comments --ignored-dirs=${GO_LINES_IGNORED_DIRS} ${GO_FOLDERS}
+
+.PHONY: tests
+tests:
+	go test -v ./...
+
+.PHONY: build
+build:
+	go build -v ./...
