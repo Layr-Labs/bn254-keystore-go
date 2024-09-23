@@ -6,12 +6,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -226,7 +227,11 @@ func TestMnemonicAndPathToKey(t *testing.T) {
 
 	// Compare the derived key with the expected key
 	if derivedKey.Cmp(expectedKey) != 0 {
-		t.Errorf("Derived key does not match expected value.\nExpected: %s\nGot:      %s", expectedKey.String(), derivedKey.String())
+		t.Errorf(
+			"Derived key does not match expected value.\nExpected: %s\nGot:      %s",
+			expectedKey.String(),
+			derivedKey.String(),
+		)
 	}
 }
 

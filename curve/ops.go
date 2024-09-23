@@ -2,11 +2,12 @@ package curve
 
 import (
 	"encoding/hex"
+	"math/big"
+
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 	bls12381Fr "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 	"github.com/consensys/gnark-crypto/ecc/bn254"
 	bn254Fr "github.com/consensys/gnark-crypto/ecc/bn254/fr"
-	"math/big"
 )
 
 type Ops struct {

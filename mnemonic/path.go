@@ -7,7 +7,8 @@ import (
 	"strings"
 )
 
-// pathToNodes maps from a path string to a slice of indices, where each index represents the corresponding level in the path.
+// pathToNodes maps from a path string to a slice of indices, where each index represents the corresponding level in the
+// path.
 //
 // Parameters:
 //   - path (string): The path string to be converted to a slice of indices.
