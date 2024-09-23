@@ -7,11 +7,12 @@ import (
 	"crypto/sha512"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/pbkdf2"
-	"golang.org/x/crypto/scrypt"
 	"hash"
 	"math/big"
 	"strings"
+
+	"golang.org/x/crypto/pbkdf2"
+	"golang.org/x/crypto/scrypt"
 )
 
 // Scrypt key derivation function.

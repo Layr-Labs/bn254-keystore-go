@@ -2,8 +2,9 @@ package keystore
 
 import (
 	"encoding/hex"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestScryptInvalidParams(t *testing.T) {
@@ -35,7 +36,13 @@ func TestScryptInvalidParams(t *testing.T) {
 		_, err := Scrypt([]byte("mypassword"), []byte("mysalt"), test.N, test.r, test.p, 32)
 		if test.valid {
 			if err != nil {
-				t.Errorf("Expected scrypt.Key to succeed with n=%d, r=%d, p=%d, but got error: %v", test.N, test.r, test.p, err)
+				t.Errorf(
+					"Expected scrypt.Key to succeed with n=%d, r=%d, p=%d, but got error: %v",
+					test.N,
+					test.r,
+					test.p,
+					err,
+				)
 			}
 		} else {
 			if err == nil {
@@ -123,13 +130,52 @@ func TestAES128CTR(t *testing.T) {
 		valid bool
 	}{
 		{
-			key:   []byte{0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12}, // 16 bytes key
-			iv:    hexDecodeOrFail(t, "edc2606468f9660ad222690db8836a9d"),                                                 // 16 bytes IV
+			key: []byte{
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+			}, // 16 bytes key
+			iv: hexDecodeOrFail(
+				t,
+				"edc2606468f9660ad222690db8836a9d",
+			), // 16 bytes IV
 			valid: true,
 		},
 		{
-			key:   []byte{0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12}, // 15 bytes key
-			iv:    hexDecodeOrFail(t, "edc2606468f9660ad222690db8836a9d"),                                           // 16 bytes IV
+			key: []byte{
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+				0x12,
+			}, // 15 bytes key
+			iv: hexDecodeOrFail(
+				t,
+				"edc2606468f9660ad222690db8836a9d",
+			), // 16 bytes IV
 			valid: false,
 		},
 	}

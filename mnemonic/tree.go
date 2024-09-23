@@ -6,11 +6,12 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
-	"golang.org/x/crypto/hkdf"
 	"io"
 	"math"
 	"math/big"
+
+	"github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
+	"golang.org/x/crypto/hkdf"
 )
 
 var blsCurveOrder = fr.Modulus()

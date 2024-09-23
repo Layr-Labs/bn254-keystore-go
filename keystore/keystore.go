@@ -7,25 +7,26 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/text/unicode/norm"
 	"os"
 	"path/filepath"
 	"unicode"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 // Keystore struct
 type Keystore struct {
-	Crypto      KeystoreCrypto `json:"crypto"`
-	Description string         `json:"description"`
-	PubKey      string         `json:"pubkey"`
-	Path        string         `json:"path"`
-	UUID        string         `json:"uuid"`
-	Version     int            `json:"version"`
-	Curve       string         `json:"curve"`
+	Crypto      Crypto `json:"crypto"`
+	Description string `json:"description"`
+	PubKey      string `json:"pubkey"`
+	Path        string `json:"path"`
+	UUID        string `json:"uuid"`
+	Version     int    `json:"version"`
+	Curve       string `json:"curve"`
 }
 
-// KeystoreCrypto represents cryptographic parameters within the keystore
-type KeystoreCrypto struct {
+// Crypto represents cryptographic parameters within the keystore
+type Crypto struct {
 	Kdf struct {
 		Function string                 `json:"function"`
 		Params   map[string]interface{} `json:"params"`
@@ -44,22 +45,22 @@ type KeystoreCrypto struct {
 }
 
 // ChecksumMessage returns the decoded checksum message as a byte slice
-func (kc *KeystoreCrypto) ChecksumMessage() ([]byte, error) {
+func (kc *Crypto) ChecksumMessage() ([]byte, error) {
 	return hex.DecodeString(kc.Checksum.Message)
 }
 
 // CipherMessage returns the decoded cipher message (ciphertext) as a byte slice
-func (kc *KeystoreCrypto) CipherMessage() ([]byte, error) {
+func (kc *Crypto) CipherMessage() ([]byte, error) {
 	return hex.DecodeString(kc.Cipher.Message)
 }
 
 // CipherParams retrieves the cipher parameters (e.g., IV) as a map
-func (kc *KeystoreCrypto) CipherParams() map[string]interface{} {
+func (kc *Crypto) CipherParams() map[string]interface{} {
 	return kc.Cipher.Params
 }
 
 // IV retrieves the initialization vector (IV) from cipher params
-func (kc *KeystoreCrypto) IV() ([]byte, error) {
+func (kc *Crypto) IV() ([]byte, error) {
 	ivStr, ok := kc.Cipher.Params["iv"].(string)
 	if !ok {
 		return nil, errors.New("invalid IV format")
@@ -68,7 +69,7 @@ func (kc *KeystoreCrypto) IV() ([]byte, error) {
 }
 
 // KdfParams retrieves the KDF parameters
-func (kc *KeystoreCrypto) KdfParams() map[string]interface{} {
+func (kc *Crypto) KdfParams() map[string]interface{} {
 	return kc.Kdf.Params
 }
 
@@ -79,7 +80,7 @@ func (ks *Keystore) FromJSON(data map[string]interface{}) error {
 		return errors.New("invalid crypto field")
 	}
 
-	crypto, err := KeystoreCryptoFromJSON(cryptoData)
+	crypto, err := CryptoFromJSON(cryptoData)
 	if err != nil {
 		return err
 	}
@@ -96,9 +97,9 @@ func (ks *Keystore) FromJSON(data map[string]interface{}) error {
 	return nil
 }
 
-// KeystoreCryptoFromJSON parses the KeystoreCrypto from the provided JSON data
-func KeystoreCryptoFromJSON(data map[string]interface{}) (*KeystoreCrypto, error) {
-	crypto := &KeystoreCrypto{}
+// CryptoFromJSON parses the Crypto from the provided JSON data
+func CryptoFromJSON(data map[string]interface{}) (*Crypto, error) {
+	crypto := &Crypto{}
 
 	// Parse KDF section
 	kdfData, ok := data["kdf"].(map[string]interface{})
@@ -190,8 +191,10 @@ func (ks *Keystore) FromFile(path string) error {
 //   - secret ([]byte): The secret data to be encrypted (e.g., a private key). Must not be empty.
 //   - password (string): The password used to derive the encryption key via the KDF. Must not be empty.
 //   - path (string): The file system path where the keystore will be stored.
-//   - kdfSalt ([]byte): Optional. The salt used in the key derivation function. If nil or empty, a random 256-bit salt is generated.
-//   - aesIV ([]byte): Optional. The initialization vector (IV) for AES encryption. If nil or empty, a random 128-bit IV is generated.
+//
+// - kdfSalt ([]byte): Optional. The salt used in the key derivation function. If nil or empty, a random 256-bit salt is
+// generated. - aesIV ([]byte): Optional. The initialization vector (IV) for AES encryption. If nil or empty, a random
+// 128-bit IV is generated.
 //
 // Returns:
 //   - *Keystore: A pointer to the Keystore instance containing the encrypted secret and associated metadata.
@@ -349,7 +352,7 @@ func (ks *Keystore) Save(fileFolder string) error {
 // It utilizes the key derivation function (KDF) and AES-128-CTR decryption to recover the original secret.
 //
 // Parameters:
-//   - password (string): The password used to derive the decryption key. Must match the password used during encryption.
+// - password (string): The password used to derive the decryption key. Must match the password used during encryption.
 //
 // Returns:
 //   - []byte: The decrypted secret (e.g., a private key).
@@ -396,7 +399,8 @@ func (ks *Keystore) Decrypt(password string) ([]byte, error) {
 // Aes128CTRDecrypt decrypts a ciphertext using AES-128 in CTR (Counter) mode.
 //
 // It uses the provided key and initialization vector (IV) to decrypt the ciphertext and return the plaintext.
-// The IV is obtained by calling `ks.Crypto.IV()`. Note that the `params` parameter is currently not used in this function.
+// The IV is obtained by calling `ks.Crypto.IV()`. Note that the `params` parameter is currently not used in this
+// function.
 //
 // Parameters:
 //   - key: A byte slice containing the decryption key.
