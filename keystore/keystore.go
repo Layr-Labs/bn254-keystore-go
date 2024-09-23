@@ -1,7 +1,6 @@
 package keystore
 
 import (
-	"bn254-keystore-go/mnemonic"
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/hex"
@@ -11,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"unicode"
+
+	"github.com/Layr-Labs/bn254-keystore-go/mnemonic"
 
 	"golang.org/x/text/unicode/norm"
 )

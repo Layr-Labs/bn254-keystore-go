@@ -1,4 +1,4 @@
-module bn254-keystore-go
+module github.com/Layr-Labs/bn254-keystore-go
 
 go 1.23.1
 
