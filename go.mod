@@ -1,9 +1,11 @@
 module github.com/Layr-Labs/bn254-keystore-go
 
-go 1.23.1
+go 1.21
+
+toolchain go1.21.11
 
 require (
-	github.com/consensys/gnark-crypto v0.14.0
+	github.com/consensys/gnark-crypto v0.12.1
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.27.0
 	golang.org/x/text v0.18.0
