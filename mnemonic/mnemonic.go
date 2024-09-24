@@ -18,6 +18,19 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+type Language string
+
+const (
+	English            Language = "english"
+	Italian            Language = "italian"
+	Portuguese         Language = "portuguese"
+	Czech              Language = "czech"
+	Spanish            Language = "spanish"
+	ChineseSimplified  Language = "chinese_simplified"
+	ChineseTraditional Language = "chinese_traditional"
+	Korean             Language = "korean"
+)
+
 // getWordList reads the BIP39 wordlist for the given language from a file.
 //
 // Parameters:
@@ -27,7 +40,7 @@ import (
 // Returns:
 //   - []string: A slice of words from the wordlist.
 //   - error: An error object if the wordlist file cannot be read.
-func getWordList(language, path string) ([]string, error) {
+func getWordList(language Language, path string) ([]string, error) {
 	cleanLanguageFileName := filepath.Clean(fmt.Sprintf("%s.txt", language))
 	filePath := filepath.Join(path, cleanLanguageFileName)
 
@@ -124,20 +137,20 @@ func GetSeed(mnemonic, password string) ([]byte, error) {
 //   - wordsPath (string): The path to the directory containing the wordlist files.
 //
 // Returns:
-//   - []string: A slice of detected languages.
+//   - []Language: A slice of detected languages.
 //   - error: An error object if the language determination fails.
-func determineMnemonicLanguage(mnemonic, wordsPath string) ([]string, error) {
-	languages := []string{
-		"english",
-		"italian",
-		"portuguese",
-		"czech",
-		"spanish",
-		"chinese_simplified",
-		"chinese_traditional",
-		"korean",
+func determineMnemonicLanguage(mnemonic, wordsPath string) ([]Language, error) {
+	languages := []Language{
+		English,
+		Italian,
+		Portuguese,
+		Czech,
+		Spanish,
+		ChineseSimplified,
+		ChineseTraditional,
+		Korean,
 	}
-	wordLanguageMap := make(map[string]string)
+	wordLanguageMap := make(map[string]Language)
 
 	for _, lang := range languages {
 		wordList, err := getWordList(lang, wordsPath)
@@ -150,7 +163,7 @@ func determineMnemonicLanguage(mnemonic, wordsPath string) ([]string, error) {
 	}
 
 	var words []string
-	var detectedLanguages []string
+	var detectedLanguages []Language
 
 	for _, each := range strings.Split(strings.ToLower(mnemonic), " ") {
 		abbrev := norm.NFKC.String(each)
@@ -338,7 +351,7 @@ func ReconstructMnemonic(mnemonic, wordsPath string) (string, error) {
 // Returns:
 //   - string: The generated mnemonic phrase.
 //   - error: An error object if the mnemonic generation fails.
-func GetMnemonic(language, wordsPath string, entropy []byte) (string, error) {
+func GetMnemonic(language Language, wordsPath string, entropy []byte) (string, error) {
 	// Generate random entropy if not provided
 	if entropy == nil {
 		entropy = make([]byte, 32) // 256 bits
