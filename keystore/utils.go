@@ -1,11 +1,12 @@
 package keystore
 
 import (
-	curve2 "bn254-keystore-go/curve"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+
+	curveOps "github.com/Layr-Labs/bn254-keystore-go/curve"
 )
 
 // generateRandomBytes generates a slice of cryptographically secure random bytes of the specified length.
@@ -82,7 +83,7 @@ func Equal(a, b []byte) bool {
 //   - string: The BLS public key as a hex-encoded string.
 //   - error: An error object if the conversion fails.
 func BlsSkToPk(secret []byte, curve string) (string, error) {
-	ops, exists := curve2.OpsMap[curve]
+	ops, exists := curveOps.OpsMap[curve]
 	if !exists {
 		return "", fmt.Errorf("curve '%s' not supported", curve)
 	}
