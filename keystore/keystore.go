@@ -332,12 +332,24 @@ func (ks *Keystore) ToJSON() (string, error) {
 	return string(data), nil
 }
 
-// Save writes the Keystore to a file in JSON format
-func (ks *Keystore) Save(fileFolder string) error {
+// SaveWithUUID writes the Keystore to a file in JSON format filename as uuid.json
+func (ks *Keystore) SaveWithUUID(fileFolder string) error {
 	cleanedFileFolder := filepath.Clean(fileFolder)
 	filePath := filepath.Join(cleanedFileFolder, ks.UUID+".json")
 
-	cleanedFilePath := filepath.Clean(fileFolder)
+	return saveFile(ks, filePath)
+}
+
+// SaveWithPubKeyHex writes the Keystore to a file in JSON format and filename as pub_key_hex.json
+func (ks *Keystore) SaveWithPubKeyHex(fileFolder string) error {
+	cleanedFileFolder := filepath.Clean(fileFolder)
+	filePath := filepath.Join(cleanedFileFolder, ks.PubKey+".json")
+
+	return saveFile(ks, filePath)
+}
+
+func saveFile(ks *Keystore, path string) error {
+	cleanedFilePath := filepath.Clean(path)
 	file, err := os.Create(cleanedFilePath)
 	if err != nil {
 		return err
@@ -351,7 +363,7 @@ func (ks *Keystore) Save(fileFolder string) error {
 
 	// Set file permissions to read-only for owner and group if on Unix systems
 	if os.Getenv("GOOS") == "linux" || os.Getenv("GOOS") == "darwin" {
-		return os.Chmod(filePath, 0440)
+		return os.Chmod(cleanedFilePath, 0440)
 	}
 	return nil
 }
@@ -478,7 +490,7 @@ func (k *KeyPair) Save(path string) error {
 	}
 
 	// Save the keystore
-	err = ks.Save(path)
+	err = ks.SaveWithPubKeyHex(path)
 	if err != nil {
 		return err
 	}
@@ -495,7 +507,7 @@ func ImportFromPrivateKey(pk []byte, path string, password string) error {
 	}
 
 	// Save the keystore
-	err = ks.Save(path)
+	err = ks.SaveWithPubKeyHex(path)
 	if err != nil {
 		return err
 	}
@@ -518,7 +530,7 @@ func ImportFromMnemonic(pkMnemonic string, path string, password string) error {
 	}
 
 	// Save the keystore
-	err = ks.Save(path)
+	err = ks.SaveWithPubKeyHex(path)
 	if err != nil {
 		return err
 	}
