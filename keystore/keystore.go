@@ -469,7 +469,7 @@ func NewKeyPair(password string, language mnemonic.Language) (*KeyPair, error) {
 	}, nil
 }
 
-func (k *KeyPair) Save() error {
+func (k *KeyPair) Save(path string) error {
 	// Encrypt the key
 	ks := &Keystore{}
 	ks, err := ks.Encrypt(k.PrivateKey, k.Password, DerivationPathBN254, nil, nil)
@@ -478,7 +478,7 @@ func (k *KeyPair) Save() error {
 	}
 
 	// Save the keystore
-	err = ks.Save(k.Password)
+	err = ks.Save(path)
 	if err != nil {
 		return err
 	}
