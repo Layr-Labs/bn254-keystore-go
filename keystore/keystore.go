@@ -445,9 +445,10 @@ func (ks *Keystore) Aes128CTRDecrypt(key, ciphertext []byte) ([]byte, error) {
 type KeyPair struct {
 	PrivateKey []byte
 	Mnemonic   string
+	Password   string
 }
 
-func NewKeyPair(path string, password string, language mnemonic.Language) (*KeyPair, error) {
+func NewKeyPair(password string, language mnemonic.Language) (*KeyPair, error) {
 	// Get the mnemonic
 	pkMnemonic, err := mnemonic.GetMnemonic(language, DefaultWordListPath, nil)
 	if err != nil {
@@ -460,24 +461,29 @@ func NewKeyPair(path string, password string, language mnemonic.Language) (*KeyP
 		return nil, err
 	}
 
-	// Encrypt the key
-	ks := &Keystore{}
-	ks, err = ks.Encrypt(key.Bytes(), password, DerivationPathBN254, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// Save the keystore
-	err = ks.Save(path)
-	if err != nil {
-		return nil, err
-	}
-
 	// Return key pair
 	return &KeyPair{
 		PrivateKey: key.Bytes(),
 		Mnemonic:   pkMnemonic,
+		Password:   password,
 	}, nil
+}
+
+func (k *KeyPair) Save() error {
+	// Encrypt the key
+	ks := &Keystore{}
+	ks, err := ks.Encrypt(k.PrivateKey, k.Password, DerivationPathBN254, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	// Save the keystore
+	err = ks.Save(k.Password)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func ImportFromPrivateKey(pk []byte, path string, password string) error {
