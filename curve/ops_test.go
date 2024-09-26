@@ -11,12 +11,12 @@ import (
 
 func TestCurveOps(t *testing.T) {
 	tests := []struct {
-		curveName string
+		curveName Curve
 		secret    []byte
 		valid     bool
 	}{
-		{curveName: "bls12-381", secret: []byte{0x01, 0x02, 0x03, 0x04}, valid: true},
-		{curveName: "bn254", secret: []byte{0x05, 0x06, 0x07, 0x08}, valid: true},
+		{curveName: BN254, secret: []byte{0x01, 0x02, 0x03, 0x04}, valid: true},
+		{curveName: BLS12381, secret: []byte{0x05, 0x06, 0x07, 0x08}, valid: true},
 		{curveName: "unsupported-curve", secret: []byte{0x09, 0x0A, 0x0B, 0x0C}, valid: false},
 	}
 
@@ -37,12 +37,12 @@ func TestCurveOps(t *testing.T) {
 
 func TestSetBytes(t *testing.T) {
 	tests := []struct {
-		curveName string
+		curveName Curve
 		secret    []byte
 		expected  interface{}
 	}{
-		{curveName: "bls12-381", secret: []byte{0x01, 0x02, 0x03, 0x04}, expected: bls12381Fr.Element{}},
-		{curveName: "bn254", secret: []byte{0x05, 0x06, 0x07, 0x08}, expected: bn254Fr.Element{}},
+		{curveName: BLS12381, secret: []byte{0x01, 0x02, 0x03, 0x04}, expected: bls12381Fr.Element{}},
+		{curveName: BN254, secret: []byte{0x05, 0x06, 0x07, 0x08}, expected: bn254Fr.Element{}},
 	}
 
 	for _, test := range tests {
@@ -52,13 +52,13 @@ func TestSetBytes(t *testing.T) {
 			continue
 		}
 
-		if test.curveName == "bls12-381" {
+		if test.curveName == BLS12381 {
 			publicKeyBytes := ops.GenerateG2PubKey(test.secret)
 			publicKeyFr := bls12381Fr.Element{}
 			decodedHex, _ := hex.DecodeString(publicKeyBytes)
 			publicKeyFr.SetBytes(decodedHex)
 			assert.IsType(t, test.expected, publicKeyFr)
-		} else if test.curveName == "bn254" {
+		} else if test.curveName == BN254 {
 			publicKeyBytes := ops.GenerateG2PubKey(test.secret)
 			publicKeyFr := bn254Fr.Element{}
 			decodedHex, _ := hex.DecodeString(publicKeyBytes)
