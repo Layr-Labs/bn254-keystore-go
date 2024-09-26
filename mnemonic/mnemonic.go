@@ -54,7 +54,6 @@ func getWordList(language Language, path string) ([]string, error) {
 	filePath := filepath.Join(path, cleanLanguageFileName)
 
 	cleanFilePath := filepath.Clean(filePath)
-	fmt.Println("cleanFilePath:", cleanFilePath)
 	file, err := os.Open(cleanFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open wordlist file: %v", err)
