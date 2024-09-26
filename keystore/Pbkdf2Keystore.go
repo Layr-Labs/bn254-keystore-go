@@ -1,12 +1,14 @@
 package keystore
 
+import "github.com/Layr-Labs/bn254-keystore-go/curve"
+
 // Pbkdf2Keystore embeds the Keystore and initializes specific cryptographic parameters
 type Pbkdf2Keystore struct {
 	Keystore
 }
 
 // NewPbkdf2Keystore initializes a new Pbkdf2Keystore with the PBKDF2 KDF and AES-128-CTR cipher
-func NewPbkdf2Keystore() *Pbkdf2Keystore {
+func NewPbkdf2Keystore(curve curve.Curve) *Pbkdf2Keystore {
 	return &Pbkdf2Keystore{
 		Keystore: Keystore{
 			Crypto: Crypto{
@@ -42,6 +44,7 @@ func NewPbkdf2Keystore() *Pbkdf2Keystore {
 					Function: "aes-128-ctr",
 				},
 			},
+			Curve: string(curve),
 		},
 	}
 }

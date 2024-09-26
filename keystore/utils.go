@@ -83,9 +83,9 @@ func Equal(a, b []byte) bool {
 //   - string: The BLS public key as a hex-encoded string.
 //   - error: An error object if the conversion fails.
 func BlsSkToPk(secret []byte, curve string) (string, error) {
-	ops, exists := curveOps.OpsMap[curve]
+	ops, exists := curveOps.OpsMap[curveOps.Curve(curve)]
 	if !exists {
 		return "", fmt.Errorf("curve '%s' not supported", curve)
 	}
-	return ops.GenerateG2PubKey(secret), nil
+	return ops.GenerateG1PubKey(secret), nil
 }

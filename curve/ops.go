@@ -10,12 +10,20 @@ import (
 	bn254Fr "github.com/consensys/gnark-crypto/ecc/bn254/fr"
 )
 
+type Curve string
+
+const (
+	BLS12381 Curve = "bls12-381"
+	BN254    Curve = "bn254"
+)
+
 type Ops struct {
 	GenerateG2PubKey func(secret []byte) string
+	GenerateG1PubKey func(secret []byte) string
 }
 
-var OpsMap = map[string]Ops{
-	"bls12-381": {
+var OpsMap = map[Curve]Ops{
+	BLS12381: {
 		GenerateG2PubKey: func(secret []byte) string {
 			_, _, _, g2Gen := bls12381.Generators()
 			var frBigInt big.Int
@@ -28,7 +36,7 @@ var OpsMap = map[string]Ops{
 			return hex.EncodeToString(publicKeyBytes[:])
 		},
 	},
-	"bn254": {
+	BN254: {
 		GenerateG2PubKey: func(secret []byte) string {
 			_, _, _, g2Gen := bn254.Generators()
 			var frBigInt big.Int
@@ -38,6 +46,17 @@ var OpsMap = map[string]Ops{
 
 			var pubKey bn254.G2Affine
 			publicKeyBytes := pubKey.ScalarMultiplication(&g2Gen, &frBigInt).Bytes()
+			return hex.EncodeToString(publicKeyBytes[:])
+		},
+		GenerateG1PubKey: func(secret []byte) string {
+			_, _, g1Gen, _ := bn254.Generators()
+			var frBigInt big.Int
+			var frElement bn254Fr.Element
+			frElement.SetBytes(secret)
+			frElement.BigInt(&frBigInt)
+
+			var pubKey bn254.G1Affine
+			publicKeyBytes := pubKey.ScalarMultiplication(&g1Gen, &frBigInt).Bytes()
 			return hex.EncodeToString(publicKeyBytes[:])
 		},
 	},

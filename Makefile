@@ -1,4 +1,4 @@
-GO_LINES_IGNORED_DIRS=tests_vectors word_lists
+GO_LINES_IGNORED_DIRS=tests_vectors wordlists
 GO_PACKAGES=./curve/... ./keystore/... ./mnemonic/...
 GO_FOLDERS=$(shell echo ${GO_PACKAGES} | sed -e "s/\.\///g" | sed -e "s/\/\.\.\.//g")
 

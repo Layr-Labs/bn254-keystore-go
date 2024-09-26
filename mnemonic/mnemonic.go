@@ -12,6 +12,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/Layr-Labs/bn254-keystore-go/wordlists"
+
 	"crypto/sha512"
 
 	"golang.org/x/crypto/pbkdf2"
@@ -29,6 +31,8 @@ const (
 	ChineseSimplified  Language = "chinese_simplified"
 	ChineseTraditional Language = "chinese_traditional"
 	Korean             Language = "korean"
+
+	DefaultWordsPath = "../word_lists"
 )
 
 // getWordList reads the BIP39 wordlist for the given language from a file.
@@ -42,9 +46,15 @@ const (
 //   - error: An error object if the wordlist file cannot be read.
 func getWordList(language Language, path string) ([]string, error) {
 	cleanLanguageFileName := filepath.Clean(fmt.Sprintf("%s.txt", language))
+
+	// Get the wordlist path
+	path = wordlists.GetWordListFolderPath()
+
+	// Append the path to the wordlist folder and the language file
 	filePath := filepath.Join(path, cleanLanguageFileName)
 
 	cleanFilePath := filepath.Clean(filePath)
+	fmt.Println("cleanFilePath:", cleanFilePath)
 	file, err := os.Open(cleanFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open wordlist file: %v", err)
