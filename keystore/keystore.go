@@ -11,12 +11,19 @@ import (
 	"path/filepath"
 	"unicode"
 
+	"github.com/Layr-Labs/bn254-keystore-go/curve"
+
 	"github.com/Layr-Labs/bn254-keystore-go/mnemonic"
 
 	"golang.org/x/text/unicode/norm"
 )
 
+type KDFFunction string
+
 const (
+	KDFScrypt KDFFunction = "scrypt"
+	KDFPBKDF2 KDFFunction = "pbkdf2"
+
 	DefaultWordListPath = "../word_lists"
 
 	DerivationPathBN254 = "m/254/60/0/0"
@@ -196,18 +203,30 @@ func (ks *Keystore) FromFile(path string) error {
 // It utilizes AES-128-CTR encryption and a key derivation function (KDF) to securely encrypt the secret.
 //
 // Parameters:
+//
 //   - secret ([]byte): The secret data to be encrypted (e.g., a private key). Must not be empty.
+//
 //   - password (string): The password used to derive the encryption key via the KDF. Must not be empty.
+//
 //   - path (string): The derivation path of the key.
 //
-// - kdfSalt ([]byte): Optional. The salt used in the key derivation function. If nil or empty, a random 256-bit salt is
-// generated. - aesIV ([]byte): Optional. The initialization vector (IV) for AES encryption. If nil or empty, a random
-// 128-bit IV is generated.
+//   - kdfSalt ([]byte): Optional. The salt used in the key derivation function. If nil or empty, a random 256-bit salt is
+//     generated.
+//
+//   - aesIV ([]byte): Optional. The initialization vector (IV) for AES encryption. If nil or empty, a random
+//     128-bit IV is generated.
 //
 // Returns:
 //   - *Keystore: A pointer to the Keystore instance containing the encrypted secret and associated metadata.
 //   - error: An error object if any issues occur during encryption or parameter validation.
-func (ks *Keystore) Encrypt(secret []byte, password string, path string, kdfSalt, aesIV []byte) (*Keystore, error) {
+func (ks *Keystore) Encrypt(
+	secret []byte,
+	password string,
+	path string,
+	kdfSalt,
+	aesIV []byte,
+) (*Keystore, error) {
+
 	// Ensure secret and password are not empty
 	if len(secret) == 0 || password == "" {
 		return nil, errors.New("secret and password cannot be empty")
@@ -460,7 +479,10 @@ type KeyPair struct {
 	Password   string
 }
 
-func NewKeyPair(password string, language mnemonic.Language) (*KeyPair, error) {
+func NewKeyPair(
+	password string,
+	language mnemonic.Language,
+) (*KeyPair, error) {
 	// Get the mnemonic
 	pkMnemonic, err := mnemonic.GetMnemonic(language, DefaultWordListPath, nil)
 	if err != nil {
@@ -481,21 +503,24 @@ func NewKeyPair(password string, language mnemonic.Language) (*KeyPair, error) {
 	}, nil
 }
 
-func (k *KeyPair) Save(path string) error {
-	// Encrypt the key
-	ks := &Keystore{}
-	ks, err := ks.Encrypt(k.PrivateKey, k.Password, DerivationPathBN254, nil, nil)
-	if err != nil {
-		return err
+func (k *KeyPair) Encrypt(kdfFunction KDFFunction, curve curve.Curve) (*Keystore, error) {
+	var ks *Keystore
+	var err error
+	if kdfFunction == KDFPBKDF2 {
+		pbkdfKeyStore := NewPbkdf2Keystore(curve)
+		ks, err = pbkdfKeyStore.Encrypt(k.PrivateKey, k.Password, DerivationPathBN254, nil, nil)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		scryptKeyStore := NewScryptKeystore(curve)
+		ks, err = scryptKeyStore.Encrypt(k.PrivateKey, k.Password, DerivationPathBN254, nil, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	// Save the keystore
-	err = ks.SaveWithPubKeyHex(path)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ks, nil
 }
 
 func ImportFromPrivateKey(pk []byte, path string, password string) error {

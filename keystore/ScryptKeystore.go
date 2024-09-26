@@ -1,12 +1,14 @@
 package keystore
 
+import "github.com/Layr-Labs/bn254-keystore-go/curve"
+
 // ScryptKeystore embeds the Keystore and initializes specific cryptographic parameters
 type ScryptKeystore struct {
 	Keystore
 }
 
 // NewScryptKeystore initializes a new ScryptKeystore with the Scrypt KDF and AES-128-CTR cipher
-func NewScryptKeystore() *ScryptKeystore {
+func NewScryptKeystore(curve curve.Curve) *ScryptKeystore {
 	return &ScryptKeystore{
 		Keystore: Keystore{
 			Crypto: Crypto{
@@ -43,6 +45,7 @@ func NewScryptKeystore() *ScryptKeystore {
 					Message:  "",
 				},
 			},
+			Curve: string(curve),
 		},
 	}
 }

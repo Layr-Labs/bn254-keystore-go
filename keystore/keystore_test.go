@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Layr-Labs/bn254-keystore-go/curve"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -94,7 +96,7 @@ func TestJsonSerialization(t *testing.T) {
 		keystoreJsonPath := filepath.Join(testVectorFolder, testVectorFiles[i])
 
 		// Read JSON from the file
-		fileData, err := ioutil.ReadFile(keystoreJsonPath)
+		fileData, err := os.ReadFile(keystoreJsonPath)
 		if err != nil {
 			t.Fatalf("Failed to read file: %v", err)
 		}
@@ -143,12 +145,11 @@ func TestEncryptDecryptTestVectors(t *testing.T) {
 		var generatedKeystore *Keystore
 		var baseKeystore *Keystore
 		if strings.Contains(keystore.Crypto.Kdf.Function, "pbkdf") {
-			baseKeystore = &NewPbkdf2Keystore().Keystore
+			baseKeystore = &NewPbkdf2Keystore(curve.Curve(keystore.Curve)).Keystore
 		} else {
-			baseKeystore = &NewScryptKeystore().Keystore
+			baseKeystore = &NewScryptKeystore(curve.Curve(keystore.Curve)).Keystore
 		}
 
-		baseKeystore.Curve = keystore.Curve
 		generatedKeystore, err = baseKeystore.Encrypt(testVectorSecret, testVectorPassword, path, kdfSalt, aesIv)
 		if err != nil {
 			t.Fatalf("Encryption failed: %v", err)
@@ -211,8 +212,7 @@ func TestGeneratedKeystores(t *testing.T) {
 }
 
 func TestEncryptDecryptPbkdf2RandomIv(t *testing.T) {
-	newKeystore := NewPbkdf2Keystore()
-	newKeystore.Curve = "bls12-381"
+	newKeystore := NewPbkdf2Keystore(curve.BLS12381)
 	_, err := newKeystore.Encrypt(testVectorSecret, testVectorPassword, "random_iv", nil, nil)
 	if err != nil {
 		t.Fatalf("failed to encrypt: %v", err)
@@ -227,8 +227,7 @@ func TestEncryptDecryptPbkdf2RandomIv(t *testing.T) {
 }
 
 func TestEncryptDecryptScryptRandomIv(t *testing.T) {
-	newKeystore := NewScryptKeystore()
-	newKeystore.Curve = "bls12-381"
+	newKeystore := NewScryptKeystore(curve.BLS12381)
 
 	_, err := newKeystore.Encrypt(testVectorSecret, testVectorPassword, "random_iv", nil, nil)
 	if err != nil {
@@ -244,8 +243,7 @@ func TestEncryptDecryptScryptRandomIv(t *testing.T) {
 }
 
 func TestEncryptDecryptIncorrectPassword(t *testing.T) {
-	newKeystore := NewScryptKeystore()
-	newKeystore.Curve = "bls12-381"
+	newKeystore := NewScryptKeystore(curve.BLS12381)
 
 	_, err := newKeystore.Encrypt(testVectorSecret, testVectorPassword, "random_iv", nil, nil)
 	if err != nil {
