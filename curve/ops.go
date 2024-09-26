@@ -35,6 +35,17 @@ var OpsMap = map[Curve]Ops{
 			publicKeyBytes := pubKey.ScalarMultiplication(&g2Gen, &frBigInt).Bytes()
 			return hex.EncodeToString(publicKeyBytes[:])
 		},
+		GenerateG1PubKey: func(secret []byte) string {
+			_, _, g1Gen, _ := bls12381.Generators()
+			var frBigInt big.Int
+			var frElement bls12381Fr.Element
+			frElement.SetBytes(secret)
+			frElement.BigInt(&frBigInt)
+
+			var pubKey bls12381.G1Affine
+			publicKeyBytes := pubKey.ScalarMultiplication(&g1Gen, &frBigInt).Bytes()
+			return hex.EncodeToString(publicKeyBytes[:])
+		},
 	},
 	BN254: {
 		GenerateG2PubKey: func(secret []byte) string {
