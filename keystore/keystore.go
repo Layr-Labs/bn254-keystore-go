@@ -479,6 +479,7 @@ type KeyPair struct {
 	Password   string
 }
 
+// NewKeyPair generates a new key pair using the provided password and mnemonic language.
 func NewKeyPair(
 	password string,
 	language mnemonic.Language,
@@ -489,6 +490,24 @@ func NewKeyPair(
 		return nil, err
 	}
 
+	// Derive KeyPair
+	key, err := mnemonic.MnemonicAndPathToKey(pkMnemonic, password, DerivationPathBN254)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return key pair
+	return &KeyPair{
+		PrivateKey: key.Bytes(),
+		Mnemonic:   pkMnemonic,
+		Password:   password,
+	}, nil
+}
+
+func NewKeyPairFromMnemonic(
+	pkMnemonic string,
+	password string,
+) (*KeyPair, error) {
 	// Derive KeyPair
 	key, err := mnemonic.MnemonicAndPathToKey(pkMnemonic, password, DerivationPathBN254)
 	if err != nil {
@@ -521,44 +540,4 @@ func (k *KeyPair) Encrypt(kdfFunction KDFFunction, curve curve.Curve) (*Keystore
 	}
 
 	return ks, nil
-}
-
-func ImportFromPrivateKey(pk []byte, path string, password string) error {
-	// Encrypt the key
-	ks := &Keystore{}
-	ks, err := ks.Encrypt(pk, password, DerivationPathBN254, nil, nil)
-	if err != nil {
-		return err
-	}
-
-	// Save the keystore
-	err = ks.SaveWithPubKeyHex(path)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func ImportFromMnemonic(pkMnemonic string, path string, password string) error {
-	// Derive KeyPair
-	key, err := mnemonic.MnemonicAndPathToKey(pkMnemonic, password, DerivationPathBN254)
-	if err != nil {
-		return err
-	}
-
-	// Encrypt the key
-	ks := &Keystore{}
-	ks, err = ks.Encrypt(key.Bytes(), password, DerivationPathBN254, nil, nil)
-	if err != nil {
-		return err
-	}
-
-	// Save the keystore
-	err = ks.SaveWithPubKeyHex(path)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
