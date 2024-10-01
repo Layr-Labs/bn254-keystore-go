@@ -12,8 +12,9 @@ import (
 	"unicode"
 
 	"github.com/Layr-Labs/bn254-keystore-go/curve"
-
 	"github.com/Layr-Labs/bn254-keystore-go/mnemonic"
+
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 
 	"golang.org/x/text/unicode/norm"
 )
@@ -496,9 +497,14 @@ func NewKeyPair(
 		return nil, err
 	}
 
+	// Parse to bn254 curve
+	// TODO: Take curve as param to generalize
+	fpKey := new(fr.Element).SetBigInt(key)
+	fpKeyBytes := fpKey.Bytes()
+
 	// Return key pair
 	return &KeyPair{
-		PrivateKey: key.Bytes(),
+		PrivateKey: fpKeyBytes[:],
 		Mnemonic:   pkMnemonic,
 		Password:   password,
 	}, nil
@@ -514,9 +520,14 @@ func NewKeyPairFromMnemonic(
 		return nil, err
 	}
 
+	// Parse to bn254 curve
+	// TODO: Take curve as param to generalize
+	fpKey := new(fr.Element).SetBigInt(key)
+	fpKeyBytes := fpKey.Bytes()
+
 	// Return key pair
 	return &KeyPair{
-		PrivateKey: key.Bytes(),
+		PrivateKey: fpKeyBytes[:],
 		Mnemonic:   pkMnemonic,
 		Password:   password,
 	}, nil
