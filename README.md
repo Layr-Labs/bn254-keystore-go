@@ -27,7 +27,7 @@ import (
 
 func main() {
 	// Create a new bn254 key
-	ks, err := keystore.NewKeyPair("keystore.json", "p@$$w0rd", "english")
+	ks, err := keystore.NewKeyPair("p@$$w0rd", "english")
 
 	if err != nil {
 		fmt.Println(err)
