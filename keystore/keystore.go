@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"os"
 	"path/filepath"
 	"unicode"
@@ -496,9 +497,14 @@ func NewKeyPair(
 		return nil, err
 	}
 
+	// Parse to bn254 curve
+	// TODO: Take curve as param to generalize
+	fpKey := new(fr.Element).SetBigInt(key)
+	fpKeyBytes := fpKey.Bytes()
+
 	// Return key pair
 	return &KeyPair{
-		PrivateKey: key.Bytes(),
+		PrivateKey: fpKeyBytes[:],
 		Mnemonic:   pkMnemonic,
 		Password:   password,
 	}, nil
@@ -514,9 +520,14 @@ func NewKeyPairFromMnemonic(
 		return nil, err
 	}
 
+	// Parse to bn254 curve
+	// TODO: Take curve as param to generalize
+	fpKey := new(fr.Element).SetBigInt(key)
+	fpKeyBytes := fpKey.Bytes()
+
 	// Return key pair
 	return &KeyPair{
-		PrivateKey: key.Bytes(),
+		PrivateKey: fpKeyBytes[:],
 		Mnemonic:   pkMnemonic,
 		Password:   password,
 	}, nil
