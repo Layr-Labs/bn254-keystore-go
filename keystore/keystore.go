@@ -7,14 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"os"
 	"path/filepath"
 	"unicode"
 
 	"github.com/Layr-Labs/bn254-keystore-go/curve"
-
 	"github.com/Layr-Labs/bn254-keystore-go/mnemonic"
+
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 
 	"golang.org/x/text/unicode/norm"
 )
