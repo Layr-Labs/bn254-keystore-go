@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	curveOps "github.com/Layr-Labs/bn254-keystore-go/curve"
 	"os"
 	"path/filepath"
 	"unicode"
@@ -508,6 +509,29 @@ func NewKeyPair(
 		Mnemonic:   pkMnemonic,
 		Password:   password,
 	}, nil
+}
+
+// NewKeyPairWithCurve generates a new key pair using the provided password and mnemonic language and the curve.
+func NewKeyPairWithCurve(
+	password string,
+	language mnemonic.Language,
+	curve curve.Curve,
+) (*KeyPair, error) {
+
+	ops, exists := curveOps.OpsMap[curve]
+	if !exists {
+		return nil, fmt.Errorf("curve '%s' not supported", curve)
+	}
+
+	keyPair, err := NewKeyPair(password, language)
+
+	if err != nil {
+		return nil, err
+	}
+
+	privateKeyFrBytes := ops.GeneratePrivateKeyFromBytes(keyPair.PrivateKey)
+	keyPair.PrivateKey = privateKeyFrBytes[:]
+	return keyPair, nil
 }
 
 func NewKeyPairFromMnemonic(

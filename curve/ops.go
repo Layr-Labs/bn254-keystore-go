@@ -2,10 +2,10 @@ package curve
 
 import (
 	"encoding/hex"
+	bls12381Fr "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 	"math/big"
 
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
-	bls12381Fr "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 	"github.com/consensys/gnark-crypto/ecc/bn254"
 	bn254Fr "github.com/consensys/gnark-crypto/ecc/bn254/fr"
 )
@@ -18,8 +18,9 @@ const (
 )
 
 type Ops struct {
-	GenerateG2PubKey func(secret []byte) string
-	GenerateG1PubKey func(secret []byte) string
+	GenerateG2PubKey            func(secret []byte) string
+	GenerateG1PubKey            func(secret []byte) string
+	GeneratePrivateKeyFromBytes func(secret []byte) [32]byte
 }
 
 var OpsMap = map[Curve]Ops{
@@ -46,6 +47,9 @@ var OpsMap = map[Curve]Ops{
 			publicKeyBytes := pubKey.ScalarMultiplication(&g1Gen, &frBigInt).Bytes()
 			return hex.EncodeToString(publicKeyBytes[:])
 		},
+		GeneratePrivateKeyFromBytes: func(secret []byte) [32]byte {
+			return new(bls12381Fr.Element).SetBytes(secret).Bytes()
+		},
 	},
 	BN254: {
 		GenerateG2PubKey: func(secret []byte) string {
@@ -69,6 +73,9 @@ var OpsMap = map[Curve]Ops{
 			var pubKey bn254.G1Affine
 			publicKeyBytes := pubKey.ScalarMultiplication(&g1Gen, &frBigInt).Bytes()
 			return hex.EncodeToString(publicKeyBytes[:])
+		},
+		GeneratePrivateKeyFromBytes: func(secret []byte) [32]byte {
+			return new(bn254Fr.Element).SetBytes(secret).Bytes()
 		},
 	},
 }
