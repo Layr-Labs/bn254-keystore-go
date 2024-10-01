@@ -505,37 +505,27 @@ func NewKeyPair(
 	}, nil
 }
 
-// NewKeyPair generates a new key pair using the provided password and mnemonic language.
+// NewKeyPairWithCurve generates a new key pair using the provided password and mnemonic language and the curve.
 func NewKeyPairWithCurve(
 	password string,
 	language mnemonic.Language,
 	curve curve.Curve,
 ) (*KeyPair, error) {
 
-	ops, exists := curveOps.OpsMap[curveOps.Curve(curve)]
+	ops, exists := curveOps.OpsMap[curve]
 	if !exists {
 		return nil, fmt.Errorf("curve '%s' not supported", curve)
 	}
 
-	// Get the mnemonic
-	pkMnemonic, err := mnemonic.GetMnemonic(language, DefaultWordListPath, nil)
+	keyPair, err := NewKeyPair(password, language)
+
 	if err != nil {
 		return nil, err
 	}
 
-	// Derive KeyPair
-	key, err := mnemonic.MnemonicAndPathToKey(pkMnemonic, password, DerivationPathBN254)
-	if err != nil {
-		return nil, err
-	}
-
-	privateKeyFrBytes := ops.GeneratePrivateKeyFromBytes(key.Bytes())
-	// Return key pair
-	return &KeyPair{
-		PrivateKey: privateKeyFrBytes[:],
-		Mnemonic:   pkMnemonic,
-		Password:   password,
-	}, nil
+	privateKeyFrBytes := ops.GeneratePrivateKeyFromBytes(keyPair.PrivateKey)
+	keyPair.PrivateKey = privateKeyFrBytes[:]
+	return keyPair, nil
 }
 
 func NewKeyPairFromMnemonic(
