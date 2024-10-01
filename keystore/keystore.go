@@ -352,18 +352,26 @@ func (ks *Keystore) ToJSON() (string, error) {
 	return string(data), nil
 }
 
-// SaveWithUUID writes the Keystore to a file in JSON format filename as uuid.json
-func (ks *Keystore) SaveWithUUID(fileFolder string) error {
+// SaveWithUUID writes the Keystore to a file in JSON format
+// if fileName is empty, it will be saved as UUID.json
+func (ks *Keystore) SaveWithUUID(fileFolder string, fileName string) error {
+	if fileName == "" {
+		fileName = ks.UUID
+	}
 	cleanedFileFolder := filepath.Clean(fileFolder)
-	filePath := filepath.Join(cleanedFileFolder, ks.UUID+".json")
+	filePath := filepath.Join(cleanedFileFolder, fileName+".json")
 
 	return saveFile(ks, filePath)
 }
 
-// SaveWithPubKeyHex writes the Keystore to a file in JSON format and filename as pub_key_hex.json
-func (ks *Keystore) SaveWithPubKeyHex(fileFolder string) error {
+// SaveWithPubKeyHex writes the Keystore to a file in JSON format
+// if fileName is empty, it will be saved as pubKeyHex.json
+func (ks *Keystore) SaveWithPubKeyHex(fileFolder string, fileName string) error {
+	if fileName == "" {
+		fileName = ks.PubKey
+	}
 	cleanedFileFolder := filepath.Clean(fileFolder)
-	filePath := filepath.Join(cleanedFileFolder, ks.PubKey+".json")
+	filePath := filepath.Join(cleanedFileFolder, fileName+".json")
 
 	return saveFile(ks, filePath)
 }
