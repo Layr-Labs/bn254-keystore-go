@@ -38,3 +38,6 @@ func main() {
 	fmt.Println("Private Key Hex: ", hex.EncodeToString(ks.PrivateKey))
 }
 ```
+
+## Security Bugs
+Please report security vulnerabilities to security@eigenlabs.org. Do NOT report security bugs via Github Issues.
