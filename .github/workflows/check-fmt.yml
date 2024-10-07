@@ -2,7 +2,7 @@ name: Check make fmt
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 
 permissions:
