@@ -15,6 +15,6 @@ func GetWordList(language string) ([]string, error) {
 		return nil, err
 	}
 	content := string(data)
-	wl := strings.Split(content, "\n")
-	return wl, nil
+	wordList := strings.Split(content, "\n")
+	return wordList, nil
 }
