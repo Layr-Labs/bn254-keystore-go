@@ -1,14 +1,11 @@
 package mnemonic
 
 import (
-	"bufio"
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
 	"fmt"
 	"math/big"
-	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 
@@ -45,31 +42,32 @@ const (
 //   - []string: A slice of words from the wordlist.
 //   - error: An error object if the wordlist file cannot be read.
 func getWordList(language Language, path string) ([]string, error) {
-	cleanLanguageFileName := filepath.Clean(fmt.Sprintf("%s.txt", language))
-
-	// Get the wordlist path
-	path = wordlists.GetWordListFolderPath()
-
-	// Append the path to the wordlist folder and the language file
-	filePath := filepath.Join(path, cleanLanguageFileName)
-
-	cleanFilePath := filepath.Clean(filePath)
-	file, err := os.Open(cleanFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open wordlist file: %v", err)
-	}
-	defer file.Close()
-
-	var wordList []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		word := strings.TrimSpace(scanner.Text())
-		wordList = append(wordList, word)
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading wordlist: %v", err)
-	}
-	return wordList, nil
+	//cleanLanguageFileName := filepath.Clean(fmt.Sprintf("%s.txt", language))
+	//
+	//// Get the wordlist path
+	//path = wordlists.GetWordListFolderPath()
+	//
+	//// Append the path to the wordlist folder and the language file
+	//filePath := filepath.Join(path, cleanLanguageFileName)
+	//
+	//cleanFilePath := filepath.Clean(filePath)
+	//file, err := os.Open(cleanFilePath)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to open wordlist file: %v", err)
+	//}
+	//defer file.Close()
+	//
+	//var wordList []string
+	//scanner := bufio.NewScanner(file)
+	//for scanner.Scan() {
+	//	word := strings.TrimSpace(scanner.Text())
+	//	wordList = append(wordList, word)
+	//}
+	//if err := scanner.Err(); err != nil {
+	//	return nil, fmt.Errorf("error reading wordlist: %v", err)
+	//}
+	//return wordList, nil
+	return wordlists.GetWordList(string(language))
 }
 
 // indexToWord returns the corresponding word for the given index in the word list.
