@@ -26,8 +26,6 @@ const (
 	KDFScrypt KDFFunction = "scrypt"
 	KDFPBKDF2 KDFFunction = "pbkdf2"
 
-	DefaultWordListPath = "../word_lists"
-
 	DerivationPathBN254 = "m/254/60/0/0"
 )
 
@@ -495,7 +493,7 @@ func NewKeyPair(
 	language mnemonic.Language,
 ) (*KeyPair, error) {
 	// Get the mnemonic
-	pkMnemonic, err := mnemonic.GetMnemonic(language, DefaultWordListPath, nil)
+	pkMnemonic, err := mnemonic.GetMnemonic(language, nil)
 	if err != nil {
 		return nil, err
 	}
