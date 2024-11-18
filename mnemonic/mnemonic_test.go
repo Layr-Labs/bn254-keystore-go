@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	wordListsPath              = filepath.Join(os.Getenv("PWD"), "..", "word_lists")
 	testVectorMnemonicFilePath = filepath.Join(os.Getenv("PWD"), "..", "tests_vectors", "mnemonic.json")
 	testVectorsMnemonic        map[Language][][4]string
 )
@@ -46,7 +45,7 @@ func TestBip39(t *testing.T) {
 				}
 
 				// Test the mnemonic generation from entropy
-				mnemonic, err := GetMnemonic(language, wordListsPath, testEntropy)
+				mnemonic, err := GetMnemonic(language, testEntropy)
 				if err != nil {
 					t.Fatalf("Failed to generate mnemonic: %v", err)
 				}
@@ -73,7 +72,7 @@ func TestReconstructMnemonic(t *testing.T) {
 			mnemonic := testMnemonic[1] // Extract the mnemonic from the test vector
 
 			t.Run(fmt.Sprintf("Testing mnemonic: %s", mnemonic), func(t *testing.T) {
-				reconstructedMnemonic, err := ReconstructMnemonic(mnemonic, wordListsPath)
+				reconstructedMnemonic, err := ReconstructMnemonic(mnemonic)
 				if err != nil {
 					t.Fatalf("Failed to reconstruct mnemonic: %v", err)
 				}
@@ -102,7 +101,7 @@ func TestReconstructAbbreviatedMnemonic(t *testing.T) {
 	for _, languageTestVectors := range testVectorsMnemonic {
 		for _, testMnemonic := range languageTestVectors {
 			abbreviatedMnemonic := abbreviateMnemonic(testMnemonic[1])
-			result, err := ReconstructMnemonic(abbreviatedMnemonic, wordListsPath)
+			result, err := ReconstructMnemonic(abbreviatedMnemonic)
 			assert.NoError(t, err)
 			if result == "" {
 				t.Errorf("Failed to reconstruct mnemonic: %s", abbreviatedMnemonic)
@@ -116,7 +115,7 @@ func TestGetWord(t *testing.T) {
 	language := English
 
 	// Get the word list for the specified language
-	wordList, err := getWordList(language, wordListsPath)
+	wordList, err := getWordList(language)
 	if err != nil {
 		t.Fatalf("Failed to get word list for language %s: %v", language, err)
 	}

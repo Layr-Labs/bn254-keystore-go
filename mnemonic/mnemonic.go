@@ -1,14 +1,11 @@
 package mnemonic
 
 import (
-	"bufio"
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
 	"fmt"
 	"math/big"
-	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 
@@ -39,37 +36,12 @@ const (
 //
 // Parameters:
 //   - language (string): The language of the wordlist.
-//   - path (string): The path to the directory containing the wordlist file.
 //
 // Returns:
 //   - []string: A slice of words from the wordlist.
 //   - error: An error object if the wordlist file cannot be read.
-func getWordList(language Language, path string) ([]string, error) {
-	cleanLanguageFileName := filepath.Clean(fmt.Sprintf("%s.txt", language))
-
-	// Get the wordlist path
-	path = wordlists.GetWordListFolderPath()
-
-	// Append the path to the wordlist folder and the language file
-	filePath := filepath.Join(path, cleanLanguageFileName)
-
-	cleanFilePath := filepath.Clean(filePath)
-	file, err := os.Open(cleanFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open wordlist file: %v", err)
-	}
-	defer file.Close()
-
-	var wordList []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		word := strings.TrimSpace(scanner.Text())
-		wordList = append(wordList, word)
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading wordlist: %v", err)
-	}
-	return wordList, nil
+func getWordList(language Language) ([]string, error) {
+	return wordlists.GetWordList(string(language))
 }
 
 // indexToWord returns the corresponding word for the given index in the word list.
@@ -143,12 +115,11 @@ func GetSeed(mnemonic, password string) ([]byte, error) {
 //
 // Parameters:
 //   - mnemonic (string): The mnemonic phrase.
-//   - wordsPath (string): The path to the directory containing the wordlist files.
 //
 // Returns:
 //   - []Language: A slice of detected languages.
 //   - error: An error object if the language determination fails.
-func determineMnemonicLanguage(mnemonic, wordsPath string) ([]Language, error) {
+func determineMnemonicLanguage(mnemonic string) ([]Language, error) {
 	languages := []Language{
 		English,
 		Italian,
@@ -162,7 +133,7 @@ func determineMnemonicLanguage(mnemonic, wordsPath string) ([]Language, error) {
 	wordLanguageMap := make(map[string]Language)
 
 	for _, lang := range languages {
-		wordList, err := getWordList(lang, wordsPath)
+		wordList, err := getWordList(lang)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get wordlist for language %s: %v", lang, err)
 		}
@@ -268,14 +239,13 @@ func reconstructFromWordIndices(wordList []string, wordIndices []int) string {
 //
 // Parameters:
 //   - mnemonic (string): The abbreviated mnemonic phrase.
-//   - wordsPath (string): The path to the directory containing the wordlist files.
 //
 // Returns:
 //   - string: The reconstructed mnemonic.
 //   - error: An error object if the reconstruction fails.
-func ReconstructMnemonic(mnemonic, wordsPath string) (string, error) {
+func ReconstructMnemonic(mnemonic string) (string, error) {
 	// Determine the language of the mnemonic
-	languages, err := determineMnemonicLanguage(mnemonic, wordsPath)
+	languages, err := determineMnemonicLanguage(mnemonic)
 	if err != nil {
 		return "", err
 	}
@@ -283,7 +253,7 @@ func ReconstructMnemonic(mnemonic, wordsPath string) (string, error) {
 	var reconstructedMnemonic string
 	for _, language := range languages {
 		// Get the abbreviated word list and the full word list for the language
-		wordList, err := getWordList(language, wordsPath)
+		wordList, err := getWordList(language)
 		if err != nil {
 			return "", err
 		}
@@ -326,7 +296,7 @@ func ReconstructMnemonic(mnemonic, wordsPath string) (string, error) {
 		entropyBytes := entropy.FillBytes(make([]byte, checksumLength*4))
 
 		// Get the full word list for the language
-		fullWordList, err := getWordList(language, wordsPath)
+		fullWordList, err := getWordList(language)
 		if err != nil {
 			return "", err
 		}
@@ -354,13 +324,12 @@ func ReconstructMnemonic(mnemonic, wordsPath string) (string, error) {
 //
 // Parameters:
 //   - language (string): The language of the wordlist.
-//   - wordsPath (string): The path to the directory containing the wordlist files.
 //   - entropy ([]byte): The entropy bytes. If nil, random entropy will be generated.
 //
 // Returns:
 //   - string: The generated mnemonic phrase.
 //   - error: An error object if the mnemonic generation fails.
-func GetMnemonic(language Language, wordsPath string, entropy []byte) (string, error) {
+func GetMnemonic(language Language, entropy []byte) (string, error) {
 	// Generate random entropy if not provided
 	if entropy == nil {
 		entropy = make([]byte, 32) // 256 bits
@@ -382,7 +351,7 @@ func GetMnemonic(language Language, wordsPath string, entropy []byte) (string, e
 	entropyBits.Or(entropyBits, checksum)
 
 	// Load the word list for the specified language
-	wordList, err := getWordList(language, wordsPath)
+	wordList, err := getWordList(language)
 	if err != nil {
 		return "", fmt.Errorf("failed to load word list: %v", err)
 	}
