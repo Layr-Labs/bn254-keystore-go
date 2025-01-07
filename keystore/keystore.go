@@ -269,7 +269,7 @@ func (ks *Keystore) Encrypt(
 	ks.Crypto.Checksum.Message = hex.EncodeToString(checksum[:])
 	ks.Path = path
 
-	ks.PubKey, err = BlsSkToPk(secret, ks.Curve)
+	ks.PubKey, err = BlsSkToG1Pk(secret, ks.Curve)
 	if err != nil {
 		return nil, err
 	}
@@ -581,4 +581,12 @@ func (k *KeyPair) Encrypt(kdfFunction KDFFunction, curve curve.Curve) (*Keystore
 	}
 
 	return ks, nil
+}
+
+func (k *KeyPair) GetG1PublicKey(curve curve.Curve) (string, error) {
+	return BlsSkToG1Pk(k.PrivateKey, string(curve))
+}
+
+func (k *KeyPair) GetG2PublicKey(curve curve.Curve) (string, error) {
+	return BlsSkToG2Pk(k.PrivateKey, string(curve))
 }

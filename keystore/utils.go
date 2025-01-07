@@ -74,7 +74,7 @@ func Equal(a, b []byte) bool {
 	return true
 }
 
-// BlsSkToPk converts a BLS secret key to a public key.
+// BlsSkToG1Pk converts a BLS secret key to a public key.
 //
 // Parameters:
 //   - secret ([]byte): The BLS secret key as a byte slice.
@@ -82,10 +82,26 @@ func Equal(a, b []byte) bool {
 // Returns:
 //   - string: The BLS public key as a hex-encoded string.
 //   - error: An error object if the conversion fails.
-func BlsSkToPk(secret []byte, curve string) (string, error) {
+func BlsSkToG1Pk(secret []byte, curve string) (string, error) {
 	ops, exists := curveOps.OpsMap[curveOps.Curve(curve)]
 	if !exists {
 		return "", fmt.Errorf("curve '%s' not supported", curve)
 	}
 	return ops.GenerateG1PubKey(secret), nil
+}
+
+// BlsSkToG2Pk converts a BLS secret key to a public key.
+//
+// Parameters:
+//   - secret ([]byte): The BLS secret key as a byte slice.
+//
+// Returns:
+//   - string: The BLS public key as a hex-encoded string.
+//   - error: An error object if the conversion fails.
+func BlsSkToG2Pk(secret []byte, curve string) (string, error) {
+	ops, exists := curveOps.OpsMap[curveOps.Curve(curve)]
+	if !exists {
+		return "", fmt.Errorf("curve '%s' not supported", curve)
+	}
+	return ops.GenerateG2PubKey(secret), nil
 }
