@@ -42,11 +42,11 @@ func pathToNodes(path string) ([]int, error) {
 	// Convert the remaining strings to integers
 	var result []int
 	for _, index := range indices {
-		intVal, err := strconv.Atoi(index)
+		uintVal, err := strconv.ParseUint(index, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid index in path: %s", index)
 		}
-		result = append(result, intVal)
+		result = append(result, int(uintVal))
 	}
 
 	return result, nil
